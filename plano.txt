@@ -1,0 +1,24 @@
+Em portugues
+
+O plano, é: 
+Um jogo de ritimo estilo Guitar hero, Friday Night Funkin, que o jogador tem que pressionar as teclas no "ritimo" certo da musica.
+O visual do estado de jogo é:
+* Uma barra no meio da tela -> vai vim outras barras dos lados e o jogador tem que pressionar o lado em que as barras vieram (lembrando a batalha contra a undyne no undertale)
+* Uma barra de vida no topo da tela -> se o jogador errar muitas barras, a barra de vida vai diminuindo
+* Uma barra de combo no topo da tela -> se o jogador acertar muitas barras, a barra de combo vai aumentando
+* Uma barra de score no topo da tela -> se o jogador acertar muitas barras, a barra de score vai aumentando
+* o fundo pode ser uma imagem ou um video dempendendo da musica escolhida
+
+efeitos de gameplay: 
+* as barras podem ter velocidades diferentes, com o jogador tendo que adaptar a elas
+* as barras podem ter cores diferentes, com uns sendo de dano e outros de cura
+* o jogador pode escolher a dificuldade, que vai mudar a velocidade e a quantidade de barras que vão aparecer
+* o jogador pode escolher a musica que vai tocar, que vai mudar o ritmo do jogo
+* o jogador pode escolher a dificuldade, que vai mudar a velocidade e a quantidade de barras que vão aparecer
+* o jogador pode escolher o modo de jogo, que vai mudar a quantidade de barras que vão aparecer e a velocidade delas
+* o jogador pode escolher o tema do jogo, que vai mudar a cor das barras e do fundo
+
+
+
+mais para ser pensado
+
