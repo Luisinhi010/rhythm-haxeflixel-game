@@ -1,55 +1,97 @@
 package backend;
 
+import flixel.FlxSprite;
+import flixel.graphics.FlxGraphic;
+import flixel.sound.FlxSound;
+import flixel.util.typeLimit.OneOfFour;
+import flixel.util.typeLimit.OneOfTwo;
+import openfl.display.BitmapData;
+import openfl.filesystem.File as OpenFLFile;
 import openfl.utils.ByteArray;
 import sys.FileSystem;
 import sys.io.File;
+import sys.io.FileInput;
+import sys.io.FileOutput;
 
-enum FilePathType
+enum FilePathType // compatible File Paths
 {
-	IMAGES;
-	SOUNDS;
-	MUSIC;
-	METADATA;
-	// VIDEOS; //Not Available yet
-	SHADERS;
-	FONTS;
 	CONFIG;
 	DATA;
+	FONTS;
+	IMAGES;
+	MUSIC;
+	METADATA;
+	NONE;
 	SAVES;
+	SCRIPTS;
+	SHADERS;
+	SOUNDS;
+	// VIDEOS; //Not Available yet
+	TEXT;
 }
 
-enum FilePathExtension
+enum FilePathExtension // compatible File Extensions
 {
-	// Images
+	/* Images */
 	PNG;
-	JPG;
-	WEBP;
-	// Audios/Sounds
+	// JPG; //Not Available yet //TODO
+	// WEBP; //Not Available yet
+	/* Audios/Sounds */
 	OGG;
 	MP3;
-	// Videos
+	WAV;
+	/* Videos */ 
 	// AVI;
 	// WEBM;
 	// MP4;
-	// Shaders
+	/* Shaders */
 	GLSL;
-	// Fonts
+	/* Fonts */
 	TTF;
-	// Texts
+	/* Texts */
 	JSON;
 	TXT;
 	XML;
+	SOL;
 	HX;
 	// Add more extensions as needed
+	/* None */
+	NONE;
 }
+
+typedef GraphicAsset = OneOfFour<FlxSprite, FlxGraphic, BitmapData, String>;
+typedef SoundAsset = OneOfTwo<FlxSound, String>;
+typedef ByteArrayAsset = OneOfTwo<ByteArray, String>;
 
 class FilePath
 {
 	// This class is used to manage file paths in the game.
 	// It provides static methods to get paths for various resources.
 	public static function getExtension(ext:FilePathExtension):String
-	{
 		return "." + Type.enumConstructor(ext).toLowerCase();
+
+	public static function getType(type:FilePathType):String
+		return Type.enumConstructor(type).toLowerCase();
+
+	public static function get():String
+		return "assets/";
+
+	public static function getMod():String
+		return "mods/";
+
+	public static function getTypeFromExt(ext:FilePathExtension):String
+	{
+		switch (ext)
+		{
+			case PNG /*| JPG | WEBP*/:
+				return Type.enumConstructor(IMAGES);
+			case GLSL:
+				return Type.enumConstructor(SHADERS);
+			case TTF:
+				return Type.enumConstructor(FONTS);
+			default:
+				return Type.enumConstructor(NONE);
+		}
 	}
 
 	public static function getPath(type:FilePathType):String
@@ -59,10 +101,8 @@ class FilePath
 				return "images/";
 			case SOUNDS:
 				return "sounds/";
-			case MUSIC:
+			case MUSIC | METADATA:
 				return "music/";
-			case METADATA:
-				return "music/"; //strange, I know, just let me be!
 			// case VIDEOS:
 			// return "assets/videos/";
 			case SHADERS:
@@ -75,45 +115,98 @@ class FilePath
 				return "data/";
 			case SAVES:
 				return "saves/";
+			default:
+				return "";
+		}
+	public static function existsPath(path:String, type:FilePathType):Bool
+	{
+		trace("Checking path: " + path + " of type: " + getType(type));
+		if (FileSystem.exists(path))
+		{
+			trace("Path found: " + path);
+			return true;
+		}
+		trace("Path not found: " + path);
+
+		return false;
+	}
+
+	public static function existsFile(fileName:String, ext:FilePathExtension, type:FilePathType):Bool
+	{
+		if (fileName == null || fileName == "")
+		{
+			#if DEBUG
+			throw "File name cannot be null or empty.";
+			#end
+			return null;
+		}
+		var absPath = getPath(type) + fileName + getExtension(ext);
+		var filePath = get() + absPath;
+		var modPath = getMod() + absPath;
+
+		return existsPath(filePath, type) || existsPath(modPath, type);
+	}
+
+	public static function existsImageExt(fileName:String, ignoreMod:Bool = false):FilePathExtension
+	{ 
+		if (existsFile(fileName, PNG, IMAGES))
+			return PNG;
+		return NONE;
+	}
+
+	public static function existsSoundExt(fileName:String, ignoreMod:Bool = false):FilePathExtension
+	{ // if html5, search for MP3
+		if (existsFile(fileName, OGG, SOUNDS))
+			return OGG;
+		return NONE;
+	}
+
+	public static function getFile(fileName:String, ext:FilePathExtension, type:FilePathType, ignoreMod:Bool = false):String
+	{
+		if (fileName == null || fileName == "")
+		{
+			#if DEBUG
+			throw "File name cannot be null or empty.";
+			#end
+			return null;
+		}
+		trace("Getting file: " + fileName + getExtension(ext));
+		var absPath = getPath(type) + fileName + getExtension(ext);
+		var filePath = get() + absPath;
+		var modPath = getMod() + absPath;
+
+		if (existsPath(modPath, type) && !ignoreMod)
+		{
+			trace("Mod file found: " + modPath);
+			return modPath;
 		}
 
-	public static function get():String
-		return "assets/";
-
-	public static function getMod():String
-		return "mods/";
-
-	public static function exists(path:String, ignoreMod:Bool = false):Bool // Returns true if the file exists
-	{
-		if (ignoreMod)
-			return FileSystem.exists(get() + path);
-
-		if (FileSystem.exists(getMod() + path))
-			return true;
-		return FileSystem.exists(get() + path);
+		if (existsPath(filePath, type))
+		{
+			trace("File found: " + filePath);
+			return filePath;
+		}
+		trace("File not found: " + fileName + getExtension(ext));
+		return null;
 	}
 
-	public static function existsWithExtension(path:String, ext:FilePathExtension, ignoreMod:Bool = false):Bool
+	public static function getImagePath(imageName:String, ignoreMod:Bool = false):String
 	{
-		var fullPath = path + getExtension(ext);
-		return exists(fullPath, ignoreMod);
+		trace("Getting image path for: " + imageName);
+		var ext = existsImageExt(imageName, ignoreMod);
+		if (ext == NONE)
+			return null;
+
+		return getFile(imageName, ext, IMAGES, ignoreMod);
 	}
 
-	public static function getImagePath(imageName:String, ext:FilePathExtension = FilePathExtension.PNG):String
+	public static function getSoundPath(soundName:String, ignoreMod:Bool = false):String
 	{
-		var filename = imageName + getExtension(ext);
-		var modPath = getMod() + "images/" + filename;
-		if (FileSystem.exists(modPath))
-			return modPath;
-		return getPath(FilePathType.IMAGES) + filename;
-	}
+		trace("Getting sound path for: " + soundName);
+		var ext = OGG; // Currently only OGG is supported
+		if (!existsFile(soundName, ext, SOUNDS))
+			return null;
 
-	public static function getSongPath(songName:String, ext:FilePathExtension = FilePathExtension.MP3):String
-	{
-		var filename = songName + getExtension(ext);
-		var modPath = getMod() + "music/" + filename;
-		if (FileSystem.exists(modPath))
-			return modPath;
-		return getPath(FilePathType.MUSIC) + filename;
+		return getFile(soundName, ext, SOUNDS, ignoreMod);
 	}
 }

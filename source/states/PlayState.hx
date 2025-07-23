@@ -1,5 +1,6 @@
 package states;
 
+import backend.FilePath;
 import backend.Music;
 import flixel.FlxG;
 import flixel.FlxSprite;
@@ -11,24 +12,17 @@ import objects.DefaultSprite;
 
 class PlayState extends DefaultState
 {
-	var middlebar:DefaultBar;
+	var hitbar:DefaultBar;
 
 	override public function create():Void
 	{
-		middlebar = new DefaultBar(0, 0);
-		middlebar.screenCenter();
-		add(middlebar);
+		hitbar = new DefaultBar(0, 0);
+		hitbar.screenCenter();
+		add(hitbar);
 
-		backend.Music.test();
 		super.create();
 
-		var count:Int = 0;
-		new FlxTimer().start(1.666666666666667, function(t:FlxTimer):Void
-		{
-			trace("Timer tick: " + count);
-			count++;
-		}, 0);
-
-		trace(backend.FilePath.getExtension(backend.FilePath.FilePathExtension.MP3));
+		trace(FilePath.getImagePath("example_image", false));
+		add(new DefaultSprite(0, 0).loadGraphic(FilePath.getImagePath("example_image", false)));
 	}
 }
