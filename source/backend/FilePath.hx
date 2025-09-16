@@ -5,10 +5,16 @@ import flixel.graphics.FlxGraphic;
 import flixel.sound.FlxSound;
 import flixel.util.typeLimit.OneOfFour;
 import flixel.util.typeLimit.OneOfTwo;
+import lime.utils.Assets;
 import openfl.display.BitmapData;
-import openfl.utils.Assets;
+import openfl.utils.AssetType;
+import openfl.utils.Assets as OpenFlAssets;
 import openfl.utils.ByteArray;
+#if sys
 import sys.FileSystem;
+import sys.io.File;
+#end
+
 
 enum FilePathType // compatible File Paths
 {
@@ -37,7 +43,7 @@ enum FilePathExtension // compatible File Extensions
 	OGG;
 	MP3;
 	WAV;
-	/* Videos */ 
+	/* Videos */
 	// AVI;
 	// WEBM;
 	// MP4;
@@ -115,6 +121,7 @@ class FilePath
 			default:
 				return "";
 		}
+
 	public static function existsPath(path:String, type:FilePathType):Bool
 	{
 		trace("Checking path: " + path + " of type: " + getType(type));
@@ -167,6 +174,21 @@ class FilePath
 		return NONE;
 	}
 
+	public static function existsTextExt(fileName:String, ext:FilePathType, ignoreMod:Bool = false) // I hope i find a better way to do this
+	{
+		if (existsFile(fileName, JSON, ext))
+			return JSON;
+		if (existsFile(fileName, TXT, ext))
+			return TXT;
+		if (existsFile(fileName, XML, ext))
+			return XML;
+		if (existsFile(fileName, SOL, ext))
+			return SOL;
+		if (existsFile(fileName, HX, ext))
+			return HX;
+		return NONE;
+	}
+
 	public static function getFile(fileName:String, ext:FilePathExtension, type:FilePathType, ignoreMod:Bool = false):String
 	{
 		if (fileName == null || fileName == "")
@@ -215,6 +237,7 @@ class FilePath
 
 		return getFile(soundName, ext, SOUNDS, ignoreMod);
 	}
+
 	public static function getMusicPath(musicName:String, ignoreMod:Bool = false):String
 	{
 		trace("Getting music path for: " + musicName);
@@ -223,5 +246,14 @@ class FilePath
 			return null;
 
 		return getFile(musicName, ext, MUSIC, ignoreMod);
+	}
+	public static function getMusicDataPath(dataName:String, ignoreMod:Bool = false):String
+	{
+		trace("Getting data path for: " + dataName);
+		var ext = existsTextExt(dataName, METADATA, ignoreMod);
+		if (ext != JSON)
+			return null;
+
+		return File.getContent(getFile(dataName, ext, METADATA, ignoreMod));
 	}
 }
