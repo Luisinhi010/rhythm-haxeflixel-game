@@ -3,7 +3,6 @@ package states;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.FlxState;
-import objects.DefaultSprite;
 
 class DefaultState extends FlxState
 {

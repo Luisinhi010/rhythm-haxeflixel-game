@@ -9,7 +9,6 @@ import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
 import objects.DefaultBar;
-import objects.DefaultSprite;
 
 class PlayState extends DefaultState
 {
@@ -24,7 +23,7 @@ class PlayState extends DefaultState
 		super.create();
 
 		trace(FilePath.getImagePath("example_image", false));
-		add(new DefaultSprite(0, 0).loadGraphic(FilePath.getImagePath("example_image", false)));
+		add(new FlxSprite(0, 0).loadGraphic(FilePath.getImagePath("example_image", false)));
 		FlxG.sound.playMusic(FilePath.getMusicPath("Legion", false));
 	}
 }
