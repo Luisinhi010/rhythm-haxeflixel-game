@@ -1,9 +1,6 @@
 package backend;
 
-import openfl.utils.ByteArray;
-import sys.FileSystem;
-
-typedef MetaData =
+typedef MusicMetaData =
 {
 	var title:String;
 	var artist:String;

@@ -6,12 +6,9 @@ import flixel.sound.FlxSound;
 import flixel.util.typeLimit.OneOfFour;
 import flixel.util.typeLimit.OneOfTwo;
 import openfl.display.BitmapData;
-import openfl.filesystem.File as OpenFLFile;
+import openfl.utils.Assets;
 import openfl.utils.ByteArray;
 import sys.FileSystem;
-import sys.io.File;
-import sys.io.FileInput;
-import sys.io.FileOutput;
 
 enum FilePathType // compatible File Paths
 {
@@ -121,24 +118,31 @@ class FilePath
 	public static function existsPath(path:String, type:FilePathType):Bool
 	{
 		trace("Checking path: " + path + " of type: " + getType(type));
+		#if sys
 		if (FileSystem.exists(path))
 		{
 			trace("Path found: " + path);
 			return true;
 		}
+		#else
+		if (Assets.exists(path))
+		{
+			trace("Path found: " + path);
+			return true;
+		}
+		#end
 		trace("Path not found: " + path);
-
 		return false;
 	}
 
-	public static function existsFile(fileName:String, ext:FilePathExtension, type:FilePathType):Bool
+	public static function existsFile(fileName:String, ext:FilePathExtension, type:FilePathType, ignoreMod:Bool = false):Bool
 	{
 		if (fileName == null || fileName == "")
 		{
 			#if DEBUG
 			throw "File name cannot be null or empty.";
 			#end
-			return null;
+			return false;
 		}
 		var absPath = getPath(type) + fileName + getExtension(ext);
 		var filePath = get() + absPath;
@@ -148,15 +152,17 @@ class FilePath
 	}
 
 	public static function existsImageExt(fileName:String, ignoreMod:Bool = false):FilePathExtension
-	{ 
+	{
 		if (existsFile(fileName, PNG, IMAGES))
 			return PNG;
 		return NONE;
 	}
 
-	public static function existsSoundExt(fileName:String, ignoreMod:Bool = false):FilePathExtension
-	{ // if html5, search for MP3
-		if (existsFile(fileName, OGG, SOUNDS))
+	public static function existsAudioExt(fileName:String, ext:FilePathType, ignoreMod:Bool = false)
+	{
+		if (existsFile(fileName, MP3, ext))
+			return MP3;
+		if (existsFile(fileName, OGG, ext))
 			return OGG;
 		return NONE;
 	}
@@ -203,10 +209,19 @@ class FilePath
 	public static function getSoundPath(soundName:String, ignoreMod:Bool = false):String
 	{
 		trace("Getting sound path for: " + soundName);
-		var ext = OGG; // Currently only OGG is supported
-		if (!existsFile(soundName, ext, SOUNDS))
+		var ext = existsAudioExt(soundName, SOUNDS, ignoreMod);
+		if (ext == NONE)
 			return null;
 
 		return getFile(soundName, ext, SOUNDS, ignoreMod);
+	}
+	public static function getMusicPath(musicName:String, ignoreMod:Bool = false):String
+	{
+		trace("Getting music path for: " + musicName);
+		var ext = existsAudioExt(musicName, MUSIC, ignoreMod);
+		if (ext == NONE)
+			return null;
+
+		return getFile(musicName, ext, MUSIC, ignoreMod);
 	}
 }

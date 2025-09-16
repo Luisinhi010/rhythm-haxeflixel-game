@@ -4,6 +4,7 @@ import backend.FilePath;
 import backend.Music;
 import flixel.FlxG;
 import flixel.FlxSprite;
+import flixel.sound.FlxSound;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
@@ -24,5 +25,6 @@ class PlayState extends DefaultState
 
 		trace(FilePath.getImagePath("example_image", false));
 		add(new DefaultSprite(0, 0).loadGraphic(FilePath.getImagePath("example_image", false)));
+		FlxG.sound.playMusic(FilePath.getMusicPath("Legion", false));
 	}
 }
