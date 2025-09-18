@@ -25,12 +25,5 @@ class PlayState extends DefaultState
 		add(hitbar);
 
 		super.create();
-
-		trace(FilePath.getImagePath("example_image", false));
-		add(new FlxSprite(0, 0).loadGraphic(FilePath.getImagePath("example_image", false)));
-		FlxG.sound.playMusic(FilePath.getMusicPath("Legion", false));
-		var metadata:MusicMetaData;
-		metadata = Json.parse(FilePath.getMusicDataPath("Legion", false));
-		trace(metadata);
 	}
 }

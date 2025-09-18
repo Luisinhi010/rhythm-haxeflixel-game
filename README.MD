@@ -9,22 +9,16 @@ Project.xml
 source/
   Main.hx
   backend/
-    FilePath.hx
+    FilePath.hx          # Leitura de arquivos
     InputManager.hx      # Leitura e filtragem de teclas
-    MetaData.hx
-    Music.hx
-    MusicLoader.hx       # Carregamento e sincronização de áudio
+    MusicMetaData.hx     # Interfaçe para dados de musica .json
+    Music.hx             # Instançia de uma musica, com seu contador de bpm
   objects/
     DefaultBar.hx        # Uma barra padrão
-    DefaultObject.hx     # FlxObject extendido para funções adicionais
-    DefaultSprite.hx     # FlxSprite extendido para funções adicionais
-    HealthBar.hx         # Barra de vida
   states/
     DefaultState.hx      # FlxState extendido para funções adicionais
     PlayState.hx         # Lógica principal de gameplay
     GameOverState.hx     # Tela de fim de jogo
-  utils/
-    ThemeConfig.hx       # Definições de cores e backgrounds
 assets/
   imagens/
   videos/

@@ -5,6 +5,7 @@ import flixel.graphics.FlxGraphic;
 import flixel.sound.FlxSound;
 import flixel.util.typeLimit.OneOfFour;
 import flixel.util.typeLimit.OneOfTwo;
+import haxe.Json;
 import lime.utils.Assets;
 import openfl.display.BitmapData;
 import openfl.utils.AssetType;
