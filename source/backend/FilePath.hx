@@ -1,21 +1,9 @@
 package backend;
 
-import flixel.FlxSprite;
-import flixel.graphics.FlxGraphic;
-import flixel.sound.FlxSound;
-import flixel.util.typeLimit.OneOfFour;
-import flixel.util.typeLimit.OneOfTwo;
-import haxe.Json;
-import lime.utils.Assets;
-import openfl.display.BitmapData;
-import openfl.utils.AssetType;
-import openfl.utils.Assets as OpenFlAssets;
-import openfl.utils.ByteArray;
 #if sys
 import sys.FileSystem;
 import sys.io.File;
 #end
-
 
 enum FilePathType // compatible File Paths
 {
@@ -62,10 +50,6 @@ enum FilePathExtension // compatible File Extensions
 	/* None */
 	NONE;
 }
-
-typedef GraphicAsset = OneOfFour<FlxSprite, FlxGraphic, BitmapData, String>;
-typedef SoundAsset = OneOfTwo<FlxSound, String>;
-typedef ByteArrayAsset = OneOfTwo<ByteArray, String>;
 
 class FilePath
 {
@@ -159,35 +143,30 @@ class FilePath
 		return existsPath(filePath, type) || existsPath(modPath, type);
 	}
 
+	private static function findFirstExtension(fileName:String, extensions:Array<FilePathExtension>, type:FilePathType,
+			ignoreMod:Bool = false):FilePathExtension
+	{
+		for (ext in extensions)
+		{
+			if (existsFile(fileName, ext, type, ignoreMod))
+				return ext;
+		}
+		return NONE;
+	}
+
 	public static function existsImageExt(fileName:String, ignoreMod:Bool = false):FilePathExtension
 	{
-		if (existsFile(fileName, PNG, IMAGES))
-			return PNG;
-		return NONE;
+		return findFirstExtension(fileName, [PNG], IMAGES, ignoreMod);
 	}
 
-	public static function existsAudioExt(fileName:String, ext:FilePathType, ignoreMod:Bool = false)
+	public static function existsAudioExt(fileName:String, type:FilePathType, ignoreMod:Bool = false):FilePathExtension
 	{
-		if (existsFile(fileName, MP3, ext))
-			return MP3;
-		if (existsFile(fileName, OGG, ext))
-			return OGG;
-		return NONE;
+		return findFirstExtension(fileName, [MP3, OGG], type, ignoreMod);
 	}
 
-	public static function existsTextExt(fileName:String, ext:FilePathType, ignoreMod:Bool = false) // I hope i find a better way to do this
+	public static function existsTextExt(fileName:String, type:FilePathType, ignoreMod:Bool = false):FilePathExtension // I hope i find a better way to do this
 	{
-		if (existsFile(fileName, JSON, ext))
-			return JSON;
-		if (existsFile(fileName, TXT, ext))
-			return TXT;
-		if (existsFile(fileName, XML, ext))
-			return XML;
-		if (existsFile(fileName, SOL, ext))
-			return SOL;
-		if (existsFile(fileName, HX, ext))
-			return HX;
-		return NONE;
+		return findFirstExtension(fileName, [JSON, TXT, XML, SOL, HX], type, ignoreMod);
 	}
 
 	public static function getFile(fileName:String, ext:FilePathExtension, type:FilePathType, ignoreMod:Bool = false):String
@@ -248,6 +227,7 @@ class FilePath
 
 		return getFile(musicName, ext, MUSIC, ignoreMod);
 	}
+
 	public static function getMusicDataPath(dataName:String, ignoreMod:Bool = false):String
 	{
 		trace("Getting data path for: " + dataName);
@@ -255,6 +235,6 @@ class FilePath
 		if (ext != JSON)
 			return null;
 
-		return File.getContent(getFile(dataName, ext, METADATA, ignoreMod));
+		return getFile(dataName, ext, METADATA, ignoreMod);
 	}
 }

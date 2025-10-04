@@ -1,7 +1,6 @@
 package states;
 
 import backend.FilePath;
-import backend.Music;
 import backend.MusicMetaData;
 import flixel.FlxCamera;
 import flixel.FlxG;
@@ -12,6 +11,7 @@ import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
 import haxe.Json;
 import objects.DefaultBar;
+import objects.Music;
 
 class DebugState extends DefaultState
 {
@@ -23,14 +23,16 @@ class DebugState extends DefaultState
 		cam = new FlxCamera();
 		FlxG.cameras.reset(cam);
 		cam.bgColor = FlxColor.WHITE;
-
 		super.create();
 
-		trace(FilePath.getImagePath("example_image", false));
-		add(new FlxSprite(0, 0).loadGraphic(FilePath.getImagePath("example_image", false)));
-		FlxG.sound.playMusic(FilePath.getMusicPath("Legion", false));
-		var metadata:MusicMetaData;
-		metadata = Json.parse(FilePath.getMusicDataPath("Legion", false));
-		trace(metadata);
+		var music:Music = new Music("Legion", true);
+		add(music);
+		music.play();
+		music.beatHit = function(beat:Int)
+		{
+			trace("Beat hit: " + beat);
+		};
+		trace(music);
+		trace(music.metaData);
 	}
 }

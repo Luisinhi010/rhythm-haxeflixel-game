@@ -1,7 +1,6 @@
 package states;
 
 import backend.FilePath;
-import backend.Music;
 import backend.MusicMetaData;
 import flixel.FlxG;
 import flixel.FlxSprite;
