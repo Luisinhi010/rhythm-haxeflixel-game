@@ -1,11 +1,15 @@
 package objects;
 
+import backend.BeatEvent;
 import backend.FilePath;
 import backend.MusicMetaData;
 import backend.Paths;
 import flixel.FlxBasic;
 import flixel.FlxG;
+import flixel.FlxSprite;
 import flixel.sound.FlxSound;
+import flixel.util.FlxColor;
+import flixel.util.FlxSpriteUtil;
 import flixel.util.FlxStringUtil;
 import haxe.Json;
 import openfl.Memory;
@@ -28,6 +32,19 @@ class Music extends FlxBasic
 	private var beatsPerBar:Int; // Number of beats per bar
 	private var beatValue:Int; // The note value that represents one beat
 
+	// Timing and sync
+	private var beatOffset:Float = 0; // Fine offset adjustment for beats
+	private var syncThreshold:Float = 0.02; // Sync tolerance (20ms)
+	private var lastResyncTime:Float = 0;
+	private var resyncInterval:Float = 1.0; // Resync every second
+
+	// Debug
+	public var debugMode:Bool = #if debug true #else false #end;
+
+	// Cue points and sections
+	private var cuePoints:Map<String, Float>;
+	private var tempoChanges:Array<{time:Float, bpm:Float}>;
+
 	public var currentBeat:Float;
 	public var currentStep:Float;
 	public var currentSection:Float;
@@ -38,10 +55,104 @@ class Music extends FlxBasic
 	private var _lastSection:Int;
 	private var _lastBar:Int;
 
-	public var beatHit:Int->Void;
-	public var stepHit:Int->Void;
-	public var sectionHit:Int->Void;
-	public var barHit:Int->Void;
+	public var beatHit:BeatEvent->Void;
+	public var stepHit:BeatEvent->Void;
+	public var sectionHit:BeatEvent->Void;
+	public var barHit:BeatEvent->Void;
+
+	// Utility functions
+	public function quantize(time:Float, step:Float = 0.25):Float
+	{
+		return Math.round(time / (beatDuration * step)) * (beatDuration * step);
+	}
+
+	public function addCuePoint(name:String, time:Float):Void
+	{
+		if (cuePoints == null)
+			cuePoints = new Map();
+		cuePoints.set(name, time);
+	}
+
+	public function jumpToCue(name:String):Void
+	{
+		if (cuePoints != null && cuePoints.exists(name))
+		{
+			var time = cuePoints.get(name);
+			music.time = time;
+			resetCounters();
+			// Recalculate beats based on new time
+			currentBeat = (time - offset) / (beatDuration * 1000);
+			updateSubdivisions();
+		}
+	}
+
+	public function addTempoChange(time:Float, newBpm:Float):Void
+	{
+		if (tempoChanges == null)
+			tempoChanges = [];
+		tempoChanges.push({time: time, bpm: newBpm});
+		tempoChanges.sort((a, b) -> Std.int(a.time - b.time));
+	}
+
+	private function checkResync():Void
+	{
+		if (music.time - lastResyncTime >= resyncInterval)
+		{
+			var expectedBeat = (music.time - offset) / (beatDuration * 1000);
+			var drift = expectedBeat - currentBeat;
+
+			if (Math.abs(drift) > syncThreshold)
+			{
+				currentBeat = expectedBeat;
+				updateSubdivisions();
+				if (debugMode)
+					trace('Resynced at time ${music.time}. Drift was: $drift');
+			}
+
+			lastResyncTime = music.time;
+		}
+	}
+
+	private function updateSubdivisions():Void
+	{
+		currentStep = currentBeat * (beatValue / 4);
+		currentSection = Math.floor(currentBeat / beatsPerBar);
+		currentBar = Math.floor(currentBeat / beatsPerBar);
+	}
+
+	#if debug
+	public function drawDebug(canvas:FlxSprite):Void
+	{
+		var y = canvas.height - 40;
+
+		// Limpar o canvas antes de desenhar
+		FlxSpriteUtil.fill(canvas, FlxColor.TRANSPARENT);
+
+		// Linha base horizontal
+		FlxSpriteUtil.drawLine(canvas, 0, y, canvas.width, y, {color: FlxColor.WHITE});
+
+		// Draw beats
+		for (i in 0...Std.int(music.length / (beatDuration * 1000)))
+		{
+			var x = (i * beatDuration * 1000) / music.length * canvas.width;
+			FlxSpriteUtil.drawLine(canvas, x, y - 5, x, y + 5, {color: FlxColor.RED});
+		}
+
+		// Mark current position
+		var currentX = (music.time / music.length) * canvas.width;
+		FlxSpriteUtil.drawLine(canvas, currentX, y - 10, currentX, y + 10, {color: FlxColor.LIME});
+
+		// Draw cue points if any
+		if (cuePoints != null)
+		{
+			for (time in cuePoints)
+			{
+				var x = (time / music.length) * canvas.width;
+				FlxSpriteUtil.drawLine(canvas, x, y - 15, x, y + 15, {color: FlxColor.YELLOW});
+			}
+		}
+	}
+	#end
 
 	/**
 	 * Create a new Music instance.
@@ -69,6 +180,23 @@ class Music extends FlxBasic
 		}
 		exists = true;
 		active = true;
+
+		// Initialize maps
+		cuePoints = new Map<String, Float>();
+		tempoChanges = [];
+
+		// Add loop completion handler if looped
+		if (looped && music != null)
+		{
+			music.onComplete = function()
+			{
+				resetCounters();
+				if (debugMode)
+					trace('Loop point reached at ${music.time}');
+			};
+			// Set loop point to start
+			music.loopTime = 0;
+		}
 
 		bpm = metaData.bpm;
 		beatDuration = 60 / bpm;
@@ -132,56 +260,80 @@ class Music extends FlxBasic
 			currentSection = Math.floor(currentBeat / beatsPerBar); // beats per section based on time signature
 			currentBar = Math.floor(currentBeat / beatsPerBar); // beats per bar based on time signature
 
-			// Check for beat hits (pass beat index to handler)
-			var beatIndex = Std.int(Math.floor(currentBeat));
+			checkResync();
+
+			// Check for beat hits
+			var beatIndex = Math.floor(currentBeat);
 			if (beatIndex > _lastBeat)
 			{
 				_lastBeat = beatIndex;
 				if (beatHit != null)
-					beatHit(beatIndex);
+				{
+					var event = new BeatEvent(beatIndex, music.time, Std.int(currentBar));
+					beatHit(event);
+				}
+				if (debugMode)
+					trace('Beat: $beatIndex Time: ${music.time}');
 			}
 
-			// Check for step hits (pass step index to handler)
-			var stepIndex = Std.int(Math.floor(currentStep));
+			// Check for step hits
+			var stepIndex = Math.floor(currentStep);
 			if (stepIndex > _lastStep)
 			{
 				_lastStep = stepIndex;
 				if (stepHit != null)
-					stepHit(stepIndex);
+				{
+					var event = new BeatEvent(stepIndex, music.time, Std.int(currentBar));
+					stepHit(event);
+				}
 			}
 
-			// Check for section hits (pass section index)
-			var sectionIndex = Std.int(Math.floor(currentSection));
+			// Check for section hits
+			var sectionIndex = Math.floor(currentSection);
 			if (sectionIndex > _lastSection)
 			{
 				_lastSection = sectionIndex;
 				if (sectionHit != null)
-					sectionHit(sectionIndex);
+				{
+					var event = new BeatEvent(sectionIndex, music.time, Std.int(currentBar));
+					sectionHit(event);
+				}
 			}
 
-			// Check for bar hits (pass bar index)
-			var barIndex = Std.int(Math.floor(currentBar));
+			// Check for bar hits
+			var barIndex = Math.floor(currentBar);
 			if (barIndex > _lastBar)
 			{
 				_lastBar = barIndex;
 				if (barHit != null)
-					barHit(barIndex);
+				{
+					var event = new BeatEvent(barIndex, music.time, barIndex);
+					barHit(event);
+				}
 			}
 		}
 
 		super.update(elapsed);
 	}
 
-	public function reset(x:Float, y:Float):Void
+	/**
+	 * Reset only the beat/step/section/bar counters without affecting other state
+	 */
+	private function resetCounters():Void
 	{
 		currentBeat = 0;
 		currentStep = 0;
 		currentSection = 0;
 		currentBar = 0;
-	_lastBeat = -1;
-	_lastStep = -1;
-	_lastSection = -1;
-	_lastBar = -1;
+		_lastBeat = -1;
+		_lastStep = -1;
+		_lastSection = -1;
+		_lastBar = -1;
+	}
+
+	public function reset(x:Float, y:Float):Void
+	{
+		resetCounters();
 		visible = false;
 		active = false;
 

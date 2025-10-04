@@ -26,8 +26,8 @@ import sys.io.File;
 /**
  * Typedefs for loaded assets.
  */
-typedef GraphicAsset = OneOfFour<FlxSprite, FlxGraphic, BitmapData, String>;
 
+typedef GraphicAsset = OneOfFour<FlxSprite, FlxGraphic, BitmapData, String>;
 typedef SoundAsset = OneOfFour<FlxSound, String, Sound, Class<Sound>>;
 typedef ByteArrayAsset = OneOfTwo<ByteArray, String>;
 
