@@ -1,7 +1,6 @@
 package objects;
 
 import backend.BeatEvent;
-import backend.FilePath;
 import backend.MusicMetaData;
 import backend.Paths;
 import flixel.FlxBasic;
@@ -11,12 +10,15 @@ import flixel.sound.FlxSound;
 import flixel.util.FlxColor;
 import flixel.util.FlxSpriteUtil;
 import flixel.util.FlxStringUtil;
-import haxe.Json;
-import openfl.Memory;
 
 using Util;
 
-class Music extends FlxBasic
+/**
+ * The Conductor is responsible for playing a song and keeping track of the rhythm.
+ * It calculates the current beat, step, and other subdivisions, and dispatches
+ * events accordingly. It is the "live" part of the music system.
+ */
+class Conductor extends FlxBasic
 {
 	// An instance of the music currently playing. Holds the sound and its metadata.
 	// Also contains the algorithm for the conductor to follow the music's rhythm.
@@ -24,6 +26,7 @@ class Music extends FlxBasic
 	public var name:String;
 	public var metaData:MusicMetaData;
 	public var music:FlxSound;
+	public var song:Song;
 
 	private var bpm:Float;
 	private var beatDuration:Float;
@@ -42,8 +45,11 @@ class Music extends FlxBasic
 	public var debugMode:Bool = #if debug true #else false #end;
 
 	// Cue points and sections
-	private var cuePoints:Map<String, Float>;
-	private var tempoChanges:Array<{time:Float, bpm:Float}>;
+	/* Cue points are named timestamps in the music that can be jumped to.
+		*Tempo changes are points in time where the BPM changes, allowing for dynamic tempo adjustments.
+	 */
+	private var cuePoints:Map<String, Float>; // <Name, Time (in miliseconds)>
+	private var tempoChanges:Array<{time:Float, bpm:Float}>; 
 
 	public var currentBeat:Float;
 	public var currentStep:Float;
@@ -75,12 +81,17 @@ class Music extends FlxBasic
 
 	public function jumpToCue(name:String):Void
 	{
-		if (cuePoints != null && cuePoints.exists(name))
+		if (cuePoints != null)
 		{
+			if (!cuePoints.exists(name))
+			{
+				if (debugMode)
+					trace('$name does not exists');
+				return;
+			}
 			var time = cuePoints.get(name);
 			music.time = time;
 			resetCounters();
-			// Recalculate beats based on new time
 			currentBeat = (time - offset) / (beatDuration * 1000);
 			updateSubdivisions();
 		}
@@ -120,7 +131,6 @@ class Music extends FlxBasic
 		currentBar = Math.floor(currentBeat / beatsPerBar);
 	}
 
-	#if debug
 	public function drawDebug(canvas:FlxSprite):Void
 	{
 		var y = canvas.height - 40;
@@ -132,8 +142,10 @@ class Music extends FlxBasic
 		FlxSpriteUtil.drawLine(canvas, 0, y, canvas.width, y, {color: FlxColor.WHITE});
 
 		// Draw beats
-		for (i in 0...Std.int(music.length / (beatDuration * 1000)))
+		for (i in 0...Std.int(music.length / (beatDuration * 1000)) + 1)
 		{
+			if (i < 1)
+				continue;
 			var x = (i * beatDuration * 1000) / music.length * canvas.width;
 			FlxSpriteUtil.drawLine(canvas, x, y - 5, x, y + 5, {color: FlxColor.RED});
 		}
@@ -152,38 +164,29 @@ class Music extends FlxBasic
 			}
 		}
 	}
-	#end
 
 	/**
 	 * Create a new Music instance.
-	 * @param fileName The music file name (without extension).
+	 * @param song The Song object to play.
 	 * @param looped Whether the music should loop when it reaches the end.
 	 */
 	@:noCompletion
-	public function new(fileName:String, looped:Bool = false)
+	public function new(song:Song, looped:Bool = false)
 	{
 		super();
-		name = fileName; // the name is different than the song title
-		// because the name is used to load identify the file
-		// think of it as an id, but using the file name instead of a number.
-		// the title is just for display purposes.
-		// example: fileName = "song1", title = "My First Song"
-		
-		music = FlxG.sound.load(Paths.getMusic(fileName), 1, looped);
-		metaData = Json.parse(Paths.getMusicData(fileName));
-		if (metaData == null)
-		{
-			#if DEBUG
-			throw "Music metadata not found for " + fileName;
-			#end
-			return;
-		}
+		this.song = song;
+		this.name = song.name;
+		this.metaData = song.metaData;
+
+		music = FlxG.sound.load(Paths.getMusic(name), 1, looped);
+
 		exists = true;
 		active = true;
 
-		// Initialize maps
-		cuePoints = new Map<String, Float>();
-		tempoChanges = [];
+		// Get data from the Song object
+		cuePoints = metaData.cuespoints;
+		if (metaData.tempoChanges != null)
+			tempoChanges = metaData.tempoChanges;
 
 		// Add loop completion handler if looped
 		if (looped && music != null)
@@ -343,10 +346,21 @@ class Music extends FlxBasic
 		barHit = null;
 	}
 
+	public function restart():Void
+	{
+		if (music != null)
+		{
+			music.time = 0;
+			resetCounters();
+			if (debugMode)
+				trace('Music restarted');
+		}
+	}
+
 	override public function toString():String
 	{
 		return FlxStringUtil.getDebugString([
-			LabelValuePair.weak("name", name),
+			LabelValuePair.weak("song", song.metaData.title),
 			LabelValuePair.weak("bpm", bpm),
 			LabelValuePair.weak("beatDuration", beatDuration),
 			LabelValuePair.weak("offset", offset),

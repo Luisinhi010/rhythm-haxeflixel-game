@@ -1,23 +1,17 @@
 package states;
 
-import backend.BeatEvent;
-import backend.FilePath;
-import backend.MusicMetaData;
 import flixel.FlxCamera;
 import flixel.FlxG;
 import flixel.FlxSprite;
-import flixel.sound.FlxSound;
-import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
-import flixel.util.FlxTimer;
-import haxe.Json;
-import objects.DefaultBar;
-import objects.Music;
+import objects.Conductor;
+import objects.Song;
 
 class DebugState extends DefaultState
 {
 	var cam:FlxCamera;
-	var music:Music;
+	var song:Song;
+	var conductor:Conductor;
 	var debugCanvas:FlxSprite;
 
 	override public function create():Void
@@ -32,20 +26,36 @@ class DebugState extends DefaultState
 		debugCanvas.makeGraphic(FlxG.width, FlxG.height, FlxColor.TRANSPARENT, true);
 		add(debugCanvas);
 
-		add(music = new Music("Test", true));
-		music.debugMode = true;
-		music.play();
-		trace(music);
-		trace(music.metaData);
+		song = new Song("Legion");
+		conductor = new Conductor(song, true);
+		add(conductor);
+
+		conductor.debugMode = true;
+		conductor.play();
+		trace(conductor);
 	}
+
 	override function update(elapsed:Float)
 	{
 		super.update(elapsed);
 
 		#if debug
-		if (music != null && music.debugMode)
+		if (conductor != null && conductor.debugMode)
 		{
-			music.drawDebug(debugCanvas);
+			conductor.drawDebug(debugCanvas);
+			if (FlxG.keys.justPressed.SPACE)
+			{
+				if (conductor.music.playing)
+					conductor.music.pause();
+				else
+					conductor.music.resume();
+			}
+			if (FlxG.keys.justPressed.R)
+				conductor.restart();
+			if (FlxG.keys.justPressed.T)
+				conductor.jumpToCue("test");
+			if (FlxG.keys.justPressed.Y)
+				conductor.addCuePoint("test", conductor.music.time);
 		}
 		#end
 	}

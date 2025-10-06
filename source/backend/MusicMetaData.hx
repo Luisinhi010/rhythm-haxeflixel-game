@@ -6,5 +6,7 @@ typedef MusicMetaData =
 	artist:String,
 	bpm:Float,
 	offset:Float,
-	timeSignature:String
+	timeSignature:String,
+	cuespoints:Map<String, Float>,
+	tempoChanges:Array<{time:Float, bpm:Float}>
 }

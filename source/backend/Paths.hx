@@ -45,12 +45,8 @@ class Paths
 	// Cache control
 	public static function clearCache():Void
 	{
-		for (bitmap in imageCache)
-			if (bitmap != null)
-				bitmap.dispose();
-		imageCache.clear();
-
-		soundCache.clear();
+		clearImageCache();
+		clearSoundCache();
 	}
 
 	public static function clearImageCache():Void
@@ -84,8 +80,6 @@ class Paths
 		return LimeAssets.getText(path);
 		#end
 	}
-
-	// Synchronous cached versions
 
 	/**
 	 * Loads an image asset as BitmapData.
