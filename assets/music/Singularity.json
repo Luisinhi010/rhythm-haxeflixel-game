@@ -1,7 +1,16 @@
 {
 	"title": "Singularity",
 	"artist": "Michel F. April",
-	"bpm": 64,
+	"bpm": 32,
 	"offset": 0,
-	"timeSignature": "4/4"
+	"timeSignature": "4/4",
+	"tempoChanges": [
+		{ "time": 2820, "bpm": 64},
+		{ "time": 7500, "bpm": 32},
+		{ "time": 10320, "bpm": 64},
+		{ "time": 15000, "bpm": 32},
+		{ "time": 17820, "bpm": 64},
+		{ "time": 22500, "bpm": 32},
+		{ "time": 25320, "bpm": 64}
+	]
 }

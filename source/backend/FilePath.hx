@@ -3,6 +3,8 @@ package backend;
 #if sys
 import sys.FileSystem;
 import sys.io.File;
+#else
+import lime.utils.Assets;
 #end
 
 enum FilePathType // compatible File Paths
@@ -109,21 +111,21 @@ class FilePath
 
 	public static function existsPath(path:String, type:FilePathType):Bool
 	{
-		trace("Checking path: " + path + " of type: " + getType(type));
+		#if debug trace("Checking path: " + path + " of type: " + getType(type)); #end
 		#if sys
 		if (FileSystem.exists(path))
 		{
-			trace("Path found: " + path);
+			#if debug trace("Path found: " + path); #end
 			return true;
 		}
 		#else
 		if (Assets.exists(path))
 		{
-			trace("Path found: " + path);
+			#if debug trace("Path found: " + path); #end
 			return true;
 		}
 		#end
-		trace("Path not found: " + path);
+		#if debug trace("Path not found: " + path); #end
 		return false;
 	}
 
@@ -178,29 +180,29 @@ class FilePath
 			#end
 			return null;
 		}
-		trace("Getting file: " + fileName + getExtension(ext));
+		#if debug trace("Getting file: " + fileName + getExtension(ext)); #end
 		var absPath = getPath(type) + fileName + getExtension(ext);
 		var filePath = get() + absPath;
 		var modPath = getMod() + absPath;
 
 		if (existsPath(modPath, type) && !ignoreMod)
 		{
-			trace("Mod file found: " + modPath);
+			#if debug trace("Mod file found: " + modPath); #end
 			return modPath;
 		}
 
 		if (existsPath(filePath, type))
 		{
-			trace("File found: " + filePath);
+			#if debug trace("File found: " + filePath); #end
 			return filePath;
 		}
-		trace("File not found: " + fileName + getExtension(ext));
+		#if debug trace("File not found: " + fileName + getExtension(ext)); #end
 		return null;
 	}
 
 	public static function getImagePath(imageName:String, ignoreMod:Bool = false):String
 	{
-		trace("Getting image path for: " + imageName);
+		#if debug trace("Getting image path for: " + imageName); #end
 		var ext = existsImageExt(imageName, ignoreMod);
 		if (ext == NONE)
 			return null;
@@ -210,7 +212,7 @@ class FilePath
 
 	public static function getSoundPath(soundName:String, ignoreMod:Bool = false):String
 	{
-		trace("Getting sound path for: " + soundName);
+		#if debug trace("Getting sound path for: " + soundName); #end
 		var ext = existsAudioExt(soundName, SOUNDS, ignoreMod);
 		if (ext == NONE)
 			return null;
@@ -220,7 +222,7 @@ class FilePath
 
 	public static function getMusicPath(musicName:String, ignoreMod:Bool = false):String
 	{
-		trace("Getting music path for: " + musicName);
+		#if debug trace("Getting music path for: " + musicName); #end
 		var ext = existsAudioExt(musicName, MUSIC, ignoreMod);
 		if (ext == NONE)
 			return null;
@@ -230,7 +232,7 @@ class FilePath
 
 	public static function getMusicDataPath(dataName:String, ignoreMod:Bool = false):String
 	{
-		trace("Getting data path for: " + dataName);
+		#if debug trace("Getting data path for: " + dataName); #end
 		var ext = existsTextExt(dataName, METADATA, ignoreMod);
 		if (ext != JSON)
 			return null;

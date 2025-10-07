@@ -6,7 +6,9 @@ import backend.Paths;
 import flixel.FlxBasic;
 import flixel.FlxG;
 import flixel.FlxSprite;
+import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.sound.FlxSound;
+import flixel.text.FlxText;
 import flixel.util.FlxColor;
 import flixel.util.FlxSpriteUtil;
 import flixel.util.FlxStringUtil;
@@ -24,9 +26,24 @@ class Conductor extends FlxBasic
 	// Also contains the algorithm for the conductor to follow the music's rhythm.
 	// Can be expanded with methods to control playback, volume, etc.
 	public var name:String;
-	public var metaData:MusicMetaData;
 	public var music:FlxSound;
 	public var song:Song;
+	public var playing(get, set):Bool;
+
+	function get_playing():Bool
+		return if (music != null) music.playing else false;
+
+	function set_playing(value:Bool):Bool
+	{
+		if (music == null)
+			return false;
+
+		if (value)
+			resume();
+		else
+			pause();
+		return value;
+	}
 
 	private var bpm:Float;
 	private var beatDuration:Float;
@@ -35,6 +52,24 @@ class Conductor extends FlxBasic
 	private var beatsPerBar:Int; // Number of beats per bar
 	private var beatValue:Int; // The note value that represents one beat
 
+	public var time(get, set):Float;
+
+	function get_time():Float
+		return if (music != null) music.time else 0;
+
+	function set_time(value:Float):Float
+	{
+		if (music != null)
+		{
+			if (debugMode)
+				trace('Conductor.time set to: $value');
+			music.time = value;
+			resetCounters();
+			updateBeatAndSubdivisions();
+		}
+		return value;
+	}
+	
 	// Timing and sync
 	private var beatOffset:Float = 0; // Fine offset adjustment for beats
 	private var syncThreshold:Float = 0.02; // Sync tolerance (20ms)
@@ -44,6 +79,7 @@ class Conductor extends FlxBasic
 	// Debug
 	public var debugMode:Bool = #if debug true #else false #end;
 
+	private var _debugDraw:Bool = true;
 	// Cue points and sections
 	/* Cue points are named timestamps in the music that can be jumped to.
 		*Tempo changes are points in time where the BPM changes, allowing for dynamic tempo adjustments.
@@ -60,6 +96,7 @@ class Conductor extends FlxBasic
 	private var _lastStep:Int;
 	private var _lastSection:Int;
 	private var _lastBar:Int;
+	private var _nextTempoChangeIndex:Int = 0;
 
 	public var beatHit:BeatEvent->Void;
 	public var stepHit:BeatEvent->Void;
@@ -77,6 +114,18 @@ class Conductor extends FlxBasic
 		if (cuePoints == null)
 			cuePoints = new Map();
 		cuePoints.set(name, time);
+		if (debugMode)
+			trace('Cue point "$name" added');
+	}
+
+	public function removeCuePoint(name:String):Void
+	{
+		if (cuePoints != null && cuePoints.exists(name))
+		{
+			cuePoints.remove(name);
+			if (debugMode)
+				trace('Cue point "$name" removed');
+		}
 	}
 
 	public function jumpToCue(name:String):Void
@@ -90,10 +139,11 @@ class Conductor extends FlxBasic
 				return;
 			}
 			var time = cuePoints.get(name);
+			if (debugMode)
+				trace('Jumping to cue "$name" at time $time');
 			music.time = time;
 			resetCounters();
-			currentBeat = (time - offset) / (beatDuration * 1000);
-			updateSubdivisions();
+			updateBeatAndSubdivisions();
 		}
 	}
 
@@ -101,6 +151,8 @@ class Conductor extends FlxBasic
 	{
 		if (tempoChanges == null)
 			tempoChanges = [];
+		if (debugMode)
+			trace('Adding tempo change: ${newBpm} BPM at time $time');
 		tempoChanges.push({time: time, bpm: newBpm});
 		tempoChanges.sort((a, b) -> Std.int(a.time - b.time));
 	}
@@ -124,6 +176,12 @@ class Conductor extends FlxBasic
 		}
 	}
 
+	private function updateBeatAndSubdivisions():Void
+	{
+		currentBeat = (time - offset) / (beatDuration * 1000);
+		updateSubdivisions();
+	}
+
 	private function updateSubdivisions():Void
 	{
 		currentStep = currentBeat * (beatValue / 4);
@@ -131,65 +189,124 @@ class Conductor extends FlxBasic
 		currentBar = Math.floor(currentBeat / beatsPerBar);
 	}
 
-	public function drawDebug(canvas:FlxSprite):Void
+	public function drawDebug(canvas:FlxSprite, positionMarker:FlxSprite, textLayer:FlxTypedGroup<FlxText>):Void
 	{
-		var y = canvas.height - 40;
+		if (canvas == null || positionMarker == null || textLayer == null || music == null || !debugMode)
+			return;
 
-		// Limpar o canvas antes de desenhar
-		FlxSpriteUtil.fill(canvas, FlxColor.TRANSPARENT);
+		if (!_debugDraw)
+		{
+			// Only update the position marker
+			if (music.length > 0)
+				positionMarker.x = (music.time / music.length) * canvas.width;
+			return;
+		}
 
-		// Linha base horizontal
+		var y = canvas.height / 2;
+
+		FlxSpriteUtil.fill(canvas, FlxColor.TRANSPARENT); // Clean the canvas before drawing
+		textLayer.forEach(function(text) text.kill());
+		textLayer.clear(); // Clear the group for reuse
+
+		// Draw base line
 		FlxSpriteUtil.drawLine(canvas, 0, y, canvas.width, y, {color: FlxColor.WHITE});
 
-		// Draw beats
-		for (i in 0...Std.int(music.length / (beatDuration * 1000)) + 1)
+		// Helper to draw a marker line and its label
+		function drawMarker(time:Float, color:FlxColor, size:Float, ?labelText:String)
 		{
-			if (i < 1)
-				continue;
-			var x = (i * beatDuration * 1000) / music.length * canvas.width;
-			FlxSpriteUtil.drawLine(canvas, x, y - 5, x, y + 5, {color: FlxColor.RED});
-		}
+			if (music.length == 0)
+				return;
+			var x = (time / music.length) * canvas.width;
+			FlxSpriteUtil.drawLine(canvas, x, y - size, x, y + size, {color: color, thickness: 2});
 
-		// Mark current position
-		var currentX = (music.time / music.length) * canvas.width;
-		FlxSpriteUtil.drawLine(canvas, currentX, y - 10, currentX, y + 10, {color: FlxColor.LIME});
-
-		// Draw cue points if any
-		if (cuePoints != null)
-		{
-			for (time in cuePoints)
+			if (labelText != null)
 			{
-				var x = (time / music.length) * canvas.width;
-				FlxSpriteUtil.drawLine(canvas, x, y - 15, x, y + 15, {color: FlxColor.YELLOW});
+				var label = textLayer.recycle(FlxText);
+				label.setFormat(null, 8, color);
+				label.text = labelText;
+				label.setPosition(x + 2, y - size - 10);
+				textLayer.add(label);
 			}
 		}
+
+		// Draw beat and bar markers
+		if (beatDuration > 0)
+		{
+			var msPerBeat = beatDuration * 1000;
+			var totalBeats = Std.int(music.length / msPerBeat);
+			for (beat in 1...totalBeats + 1)
+			{
+				var isBarLine = (beat % beatsPerBar == 1);
+				drawMarker(beat * msPerBeat, isBarLine ? FlxColor.CYAN : FlxColor.RED, isBarLine ? 10 : 5);
+			}
+		}
+
+		// Draw cue points
+		if (cuePoints != null)
+		{
+			for (name in cuePoints.keys())
+			{
+				var time = cuePoints.get(name);
+				drawMarker(time, FlxColor.YELLOW, 15, name);
+			}
+		}
+		// Draw tempo changes
+		if (tempoChanges != null)
+			for (change in tempoChanges)
+				drawMarker(change.time, FlxColor.MAGENTA, 20, '${change.bpm} BPM');
+
+		// Setup current position marker
+		positionMarker.makeGraphic(2, 50, FlxColor.LIME);
+		if (music.length > 0)
+			positionMarker.x = (music.time / music.length) * canvas.width;
+		positionMarker.y = y - 25;
+		_debugDraw = false;
 	}
 
 	/**
 	 * Create a new Music instance.
 	 * @param song The Song object to play.
-	 * @param looped Whether the music should loop when it reaches the end.
 	 */
-	@:noCompletion
-	public function new(song:Song, looped:Bool = false)
+	public function new(song:Song)
 	{
 		super();
+		#if debug
+		if (debugMode)
+			trace('new Conductor for song: ${song.name}');
+		#end
+		exists = true;
+
 		this.song = song;
 		this.name = song.name;
-		this.metaData = song.metaData;
+		this.music = song.music;
+		cuePoints = song.metaData.cuePoints;
+		tempoChanges = song.metaData.tempoChanges;
+		bpm = song.metaData.bpm;
+		beatDuration = 60 / bpm;
+		offset = song.metaData.offset;
+		timeSignature = song.metaData.timeSignature;
 
-		music = FlxG.sound.load(Paths.getMusic(name), 1, looped);
+		#if debug
+		if (debugMode)
+			trace('  - Initial BPM: $bpm, Offset: $offset, Time Signature: $timeSignature');
+		#end
+		// Parse time signature (format: "numerator/denominator")
+		var timeSigParts = timeSignature.split("/");
+		if (timeSigParts.length == 2)
+		{
+			beatsPerBar = Std.parseInt(timeSigParts[0]);
+			beatValue = Std.parseInt(timeSigParts[1]);
+		}
+		else
+		{
+			beatsPerBar = 4;
+			beatValue = 4;
+		}
 
-		exists = true;
-		active = true;
-
-		// Get data from the Song object
-		cuePoints = metaData.cuespoints;
-		if (metaData.tempoChanges != null)
-			tempoChanges = metaData.tempoChanges;
-
-		// Add loop completion handler if looped
-		if (looped && music != null)
+		reset();
+		if (tempoChanges != null)
+			tempoChanges.sort((a, b) -> Std.int(a.time - b.time));
+		if (music != null)
 		{
 			music.onComplete = function()
 			{
@@ -200,123 +317,102 @@ class Conductor extends FlxBasic
 			// Set loop point to start
 			music.loopTime = 0;
 		}
-
-		bpm = metaData.bpm;
-		beatDuration = 60 / bpm;
-		offset = metaData.offset;
-		timeSignature = metaData.timeSignature;
-
-		// Parse time signature (format: "numerator/denominator")
-		var timeSigParts = timeSignature.split("/");
-		if (timeSigParts.length == 2)
-		{
-			beatsPerBar = Std.parseInt(timeSigParts[0]);
-			beatValue = Std.parseInt(timeSigParts[1]);
-		}
-		else
-		{
-			// Default to 4/4 if time signature is invalid
-			beatsPerBar = 4;
-			beatValue = 4;
-		}
-
-		reset(0, 0);
+		_nextTempoChangeIndex = 0;
 	}
 
 	public function play():Void
 		if (music != null)
 		{
-			active = true;
+			if (debugMode)
+				trace('Conductor.play() called.');
 			music.play();
+			active = music.playing;
 		}
 
 	public function stop():Void
 		if (music != null)
 		{
-			active = false;
+			if (debugMode)
+				trace('Conductor.stop() called.');
 			music.stop();
+			active = false;
 		}
 
 	public function pause():Void
 		if (music != null)
 		{
-			active = false;
+			if (debugMode)
+				trace('Conductor.pause() called.');
 			music.pause();
+			active = false;
 		}
 
 	public function resume()
 		if (music != null)
 		{
-			active = true;
+			if (debugMode)
+				trace('Conductor.resume() called.');
 			music.resume();
+			active = music.playing;
 		}
 
-	override public function update(elapsed:Float):Void
+	override public function update(elapsed:Float):Void // update is called once per frame when active is true
 	{
 		if (music != null && music.playing)
 		{
-			// Calculate current beat position
-			currentBeat = (music.time - offset) / (beatDuration * 1000);
+			checkTempoChanges();
 
-			// Calculate subdivisions
-			currentStep = currentBeat * (beatValue / 4); // steps per beat based on time signature
-			currentSection = Math.floor(currentBeat / beatsPerBar); // beats per section based on time signature
-			currentBar = Math.floor(currentBeat / beatsPerBar); // beats per bar based on time signature
+			updateBeatAndSubdivisions();
 
 			checkResync();
 
-			// Check for beat hits
-			var beatIndex = Math.floor(currentBeat);
-			if (beatIndex > _lastBeat)
-			{
-				_lastBeat = beatIndex;
-				if (beatHit != null)
-				{
-					var event = new BeatEvent(beatIndex, music.time, Std.int(currentBar));
-					beatHit(event);
-				}
-				if (debugMode)
-					trace('Beat: $beatIndex Time: ${music.time}');
-			}
-
-			// Check for step hits
-			var stepIndex = Math.floor(currentStep);
-			if (stepIndex > _lastStep)
-			{
-				_lastStep = stepIndex;
-				if (stepHit != null)
-				{
-					var event = new BeatEvent(stepIndex, music.time, Std.int(currentBar));
-					stepHit(event);
-				}
-			}
-
-			// Check for section hits
-			var sectionIndex = Math.floor(currentSection);
-			if (sectionIndex > _lastSection)
-			{
-				_lastSection = sectionIndex;
-				if (sectionHit != null)
-				{
-					var event = new BeatEvent(sectionIndex, music.time, Std.int(currentBar));
-					sectionHit(event);
-				}
-			}
-
-			// Check for bar hits
-			var barIndex = Math.floor(currentBar);
-			if (barIndex > _lastBar)
-			{
-				_lastBar = barIndex;
-				if (barHit != null)
-				{
-					var event = new BeatEvent(barIndex, music.time, barIndex);
-					barHit(event);
-				}
-			}
+			_lastBeat = checkEvent(currentBeat, _lastBeat, beatHit, 'Beat: ${Math.floor(currentBeat)} Time: ${music.time}');
+			_lastStep = checkEvent(currentStep, _lastStep, stepHit);
+			_lastSection = checkEvent(currentSection, _lastSection, sectionHit);
+			_lastBar = checkEvent(currentBar, _lastBar, barHit);
 		}
 
 		super.update(elapsed);
+	}
+
+	private function checkTempoChanges():Void
+	{
+		if (tempoChanges != null && _nextTempoChangeIndex < tempoChanges.length)
+		{
+			var tempoHasChanged:Bool = false;
+			while (_nextTempoChangeIndex < tempoChanges.length)
+			{
+				var nextChange = tempoChanges[_nextTempoChangeIndex];
+				if (music.time < nextChange.time)
+					break;
+
+				bpm = nextChange.bpm;
+				beatDuration = 60 / bpm;
+				_nextTempoChangeIndex++;
+				tempoHasChanged = true;
+				if (debugMode)
+					trace('Tempo changed to ${bpm} BPM at time ${music.time}');
+			}
+			if (tempoHasChanged)
+				_debugDraw = true;
+		}
+	}
+
+	private function checkEvent(value:Float, lastValue:Int, eventHandler:BeatEvent->Void, ?debugTrace:String):Int
+	{
+		var index = Math.floor(value);
+		if (index > lastValue)
+		{
+			if (eventHandler != null)
+			{
+				var event = new BeatEvent(index, music.time, Math.floor(currentBar));
+				eventHandler(event);
+			}
+			if (debugMode && debugTrace != null)
+				trace(debugTrace);
+			return index;
+		}
+		return lastValue;
 	}
 
 	/**
@@ -332,9 +428,11 @@ class Conductor extends FlxBasic
 		_lastStep = -1;
 		_lastSection = -1;
 		_lastBar = -1;
+		_nextTempoChangeIndex = 0;
+		_debugDraw = true;
 	}
 
-	public function reset(x:Float, y:Float):Void
+	public function reset():Void
 	{
 		resetCounters();
 		visible = false;
@@ -350,6 +448,10 @@ class Conductor extends FlxBasic
 	{
 		if (music != null)
 		{
+			// Reset BPM to the initial one from metadata
+			bpm = song.metaData.bpm;
+			beatDuration = 60 / bpm;
+
 			music.time = 0;
 			resetCounters();
 			if (debugMode)

@@ -9,18 +9,46 @@ Project.xml
 source/
   Main.hx
   backend/
-    FilePath.hx          # Leitura de arquivos
-    InputManager.hx      # Leitura e filtragem de teclas
-    MusicMetaData.hx     # Interfaçe para dados de musica .json
-    Music.hx             # Instançia de uma musica, com seu contador de bpm
+    BeatEvent.hx         # Typedef para um evento de batida
+    FilePath.hx          # Utilitários para caminhos de arquivos
+    InputManager.hx      # Gerenciador de entrada para teclado
+    MusicMetaData.hx     # Typedef para os metadados de uma música (.json)
+    Paths.hx             # Gerencia os caminhos para os assets
   objects/
+    Conductor.hx         # Toca a música e gerencia o ritmo (BPM, batidas, etc.)
+    Song.hx              # Contêiner de dados para uma música (metadados e áudio)
     DefaultBar.hx        # Uma barra padrão
   states/
     DefaultState.hx      # FlxState extendido para funções adicionais
+    DebugState.hx        # Estado para testes e debug
     PlayState.hx         # Lógica principal de gameplay
-    GameOverState.hx     # Tela de fim de jogo
 assets/
   imagens/
   videos/
   sons/
 ```
+
+## 3. Formato dos Metadados de Música (.json)
+Os arquivos JSON de metadados de música devem seguir a seguinte estrutura:
+```json
+{
+    "title": "Nome da Música",
+    "artist": "Artista",
+    "bpm": 120,
+    "offset": 0,
+    "timeSignature": "4/4",
+    "cuePoints": {
+        "intro": 0,
+        "chorus": 30000
+    },
+    "tempoChanges": [
+        { "time": 60000, "bpm": 125 },
+        { "time": 90000, "bpm": 130 }
+    ],
+    "looped": false
+}
+```
+- `offset`: Atraso inicial da música em milissegundos.
+- `cuePoints`: Pontos de referência na música (em milissegundos).
+- `tempoChanges`: Mudanças de BPM ao longo da música (em milissegundos).
+- `looped`: Se a música deve tocar em loop.
