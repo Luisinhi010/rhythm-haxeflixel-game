@@ -205,4 +205,18 @@ class Util
 	{
 		return lerp(a, b, clamp(t, 0, 1));
 	}
+
+	/**
+	 * Converts a relative file path into a platform-specific writable path.
+	 * @param relativePath The relative path of the file.
+	 * @return The full, writable path.
+	 */
+	public static function getWritablePath(relativePath:String):String
+	{
+		#if (android || ios)
+		return lime.system.System.applicationStorageDirectory + '/' + relativePath;
+		#else
+		return relativePath;
+		#end
+	}
 }

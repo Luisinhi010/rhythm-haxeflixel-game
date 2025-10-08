@@ -5,6 +5,7 @@
 	"offset": 0,
 	"timeSignature": "4/4",
 	"tempoChanges": [
+		{ "time": 0, "bpm": 32},
 		{ "time": 2820, "bpm": 64},
 		{ "time": 7500, "bpm": 32},
 		{ "time": 10320, "bpm": 64},

@@ -45,38 +45,39 @@ class Song
 			return;
 		}
 
-		metaData = Json.parse(jsonString);
-		if (metaData == null)
+		var parsedData:Dynamic = Json.parse(jsonString);
+		if (parsedData == null)
 		{
 			trace('Error parsing music metadata for "$name"');
 			return;
 		}
-		#if debug
-		trace('Successfully parsed metadata for "$name".');
-		#end
-		// Set default values if optional fields are missing
-		if (metaData.offset == null)
-			metaData.offset = 0; // in milliseconds
-		if (metaData.timeSignature == null) // Default to 4/4 if not specified
-			metaData.timeSignature = "4/4";
 
 		// The JSON parser creates an anonymous object for cuePoints,
 		// so we need to manually convert it to a real Map.
-		var cuePointsObj:Dynamic = metaData.cuePoints;
-		metaData.cuePoints = new Map<String, Float>(); // Initialize with a new, empty map
+		var cuePointsMap = new Map<String, Float>();
+		var cuePointsObj:Dynamic = parsedData.cuePoints;
 		if (cuePointsObj != null)
 		{
-			// Iterate over the fields of the anonymous object and add them to the real Map
 			for (fieldName in Reflect.fields(cuePointsObj))
 			{
-				metaData.cuePoints.set(fieldName, Reflect.field(cuePointsObj, fieldName));
+				cuePointsMap.set(fieldName, Reflect.field(cuePointsObj, fieldName));
 			}
 		}
-		if (metaData.tempoChanges == null)
-			metaData.tempoChanges = [];
-		if (metaData.looped == null)
-			metaData.looped = false;
+		// Construct the metaData object with defaults and the converted map
+		// Plus, this fixes "Uncaught exception: Can't cast dynobj to haxe.ds.StringMap" when compiling to hashlink
+		metaData = {
+			title: parsedData.title == null ? name : parsedData.title,
+			artist: parsedData.artist == null ? "Unknown" : parsedData.artist,
+			bpm: parsedData.bpm,
+			offset: parsedData.offset == null ? 0 : parsedData.offset,
+			timeSignature: parsedData.timeSignature == null ? "4/4" : parsedData.timeSignature,
+			cuePoints: cuePointsMap,
+			tempoChanges: parsedData.tempoChanges == null ? [] : parsedData.tempoChanges,
+			looped: parsedData.looped == null ? false : parsedData.looped
+		};
+
 		#if debug
+		trace('Successfully parsed metadata for "$name".');
 		trace('  - Title: ${metaData.title}, Artist: ${metaData.artist}');
 		trace('  - Initial BPM: ${metaData.bpm}, Offset: ${metaData.offset}ms');
 		trace('  - Cue Points: ' + (metaData.cuePoints.iterator().hasNext() ? '${metaData.cuePoints}' : '(none)'));

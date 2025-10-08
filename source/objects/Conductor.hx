@@ -42,6 +42,7 @@ class Conductor extends FlxBasic
 			resume();
 		else
 			pause();
+		_debugDraw = true;
 		return value;
 	}
 
@@ -63,6 +64,7 @@ class Conductor extends FlxBasic
 		{
 			if (debugMode)
 				trace('Conductor.time set to: $value');
+
 			music.time = value;
 			resetCounters();
 			updateBeatAndSubdivisions();
@@ -116,6 +118,7 @@ class Conductor extends FlxBasic
 		cuePoints.set(name, time);
 		if (debugMode)
 			trace('Cue point "$name" added');
+		_debugDraw = true;
 	}
 
 	public function removeCuePoint(name:String):Void
@@ -125,6 +128,7 @@ class Conductor extends FlxBasic
 			cuePoints.remove(name);
 			if (debugMode)
 				trace('Cue point "$name" removed');
+			_debugDraw = true;
 		}
 	}
 

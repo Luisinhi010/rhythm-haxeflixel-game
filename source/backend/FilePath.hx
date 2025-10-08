@@ -1,6 +1,6 @@
 package backend;
 
-#if sys
+#if (sys && !android && !ios)
 import sys.FileSystem;
 import sys.io.File;
 #else
@@ -111,22 +111,14 @@ class FilePath
 
 	public static function existsPath(path:String, type:FilePathType):Bool
 	{
-		#if debug trace("Checking path: " + path + " of type: " + getType(type)); #end
-		#if sys
-		if (FileSystem.exists(path))
-		{
-			#if debug trace("Path found: " + path); #end
-			return true;
-		}
+		var exists:Bool;
+		#if (sys && !android && !ios)
+		exists = FileSystem.exists(path);
 		#else
-		if (Assets.exists(path))
-		{
-			#if debug trace("Path found: " + path); #end
-			return true;
-		}
+		exists = Assets.exists(path);
 		#end
-		#if debug trace("Path not found: " + path); #end
-		return false;
+		#if debug trace('Checking for ${path}: ${exists ? "Found" : "Not Found"}'); #end
+		return exists;
 	}
 
 	public static function existsFile(fileName:String, ext:FilePathExtension, type:FilePathType, ignoreMod:Bool = false):Bool
@@ -142,7 +134,10 @@ class FilePath
 		var filePath = get() + absPath;
 		var modPath = getMod() + absPath;
 
-		return existsPath(filePath, type) || existsPath(modPath, type);
+		if (!ignoreMod && existsPath(modPath, type))
+			return true;
+
+		return existsPath(filePath, type);
 	}
 
 	private static function findFirstExtension(fileName:String, extensions:Array<FilePathExtension>, type:FilePathType,
@@ -234,7 +229,7 @@ class FilePath
 	{
 		#if debug trace("Getting data path for: " + dataName); #end
 		var ext = existsTextExt(dataName, METADATA, ignoreMod);
-		if (ext != JSON)
+		if (ext != JSON) // Only JSON is supported for music metadata
 			return null;
 
 		return getFile(dataName, ext, METADATA, ignoreMod);
