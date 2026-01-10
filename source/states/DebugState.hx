@@ -1,5 +1,6 @@
 package states;
 
+import backend.BeatEvent;
 import flixel.FlxCamera;
 import flixel.FlxG;
 import flixel.FlxSprite;
@@ -11,6 +12,7 @@ import objects.Song;
 
 class DebugState extends DefaultState
 {
+
 	var cam:FlxCamera;
 	var song:Song;
 	var conductor:Conductor;
@@ -36,7 +38,7 @@ class DebugState extends DefaultState
 		positionMarker = new FlxSprite();
 		add(positionMarker);
 
-		song = new Song("Singularity", true);
+		song = new Song("Narrator", true);
 		conductor = new Conductor(song);
 		add(conductor);
 		conductor.play();
@@ -46,7 +48,6 @@ class DebugState extends DefaultState
 	{
 		super.update(elapsed);
 
-		#if debug
 		if (conductor != null)
 		{
 			if (conductor.debugMode)
@@ -73,6 +74,5 @@ class DebugState extends DefaultState
 			if (FlxG.keys.justPressed.P)
 				conductor.debugMode = !conductor.debugMode;
 		}
-		#end
 	}
 }

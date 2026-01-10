@@ -238,9 +238,9 @@ class Conductor extends FlxBasic
 		{
 			var msPerBeat = beatDuration * 1000;
 			var totalBeats = Std.int(music.length / msPerBeat);
-			for (beat in 1...totalBeats + 1)
+			for (beat in 0...totalBeats + 2)
 			{
-				var isBarLine = (beat % beatsPerBar == 1);
+				var isBarLine = (beat % beatsPerBar == 0);
 				drawMarker(beat * msPerBeat, isBarLine ? FlxColor.CYAN : FlxColor.RED, isBarLine ? 10 : 5);
 			}
 		}
@@ -370,7 +370,7 @@ class Conductor extends FlxBasic
 
 			checkResync();
 
-			_lastBeat = checkEvent(currentBeat, _lastBeat, beatHit, 'Beat: ${Math.floor(currentBeat)} Time: ${music.time}');
+			_lastBeat = checkEvent(currentBeat, _lastBeat, beatHit);
 			_lastStep = checkEvent(currentStep, _lastStep, stepHit);
 			_lastSection = checkEvent(currentSection, _lastSection, sectionHit);
 			_lastBar = checkEvent(currentBar, _lastBar, barHit);
