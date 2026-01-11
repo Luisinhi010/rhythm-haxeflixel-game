@@ -2,6 +2,7 @@ package objects;
 
 import Reflect;
 import backend.MusicMetaData;
+import backend.MusicMetaDataBuilder;
 import backend.Paths;
 import flixel.FlxG;
 import flixel.sound.FlxSound;
@@ -83,5 +84,40 @@ class Song
 		trace('  - Cue Points: ' + (metaData.cuePoints.iterator().hasNext() ? '${metaData.cuePoints}' : '(none)'));
 		trace('  - Tempo Changes: ' + (metaData.tempoChanges.length > 0 ? '${metaData.tempoChanges}' : '(none)'));
 		#end
+	}
+
+	/**
+	 * Static helper to create a Song with metadata from a MusicMetaDataBuilder.
+	 * Useful when programmatically generating song metadata.
+	 * @param fileName The name of the music file (without extension).
+	 * @param builder The MusicMetaDataBuilder containing the metadata.
+	 * @param saveJson Whether to save the metadata to a JSON file. Default is true.
+	 * @return A new Song instance with the provided metadata.
+	 */
+	public static function fromBuilder(fileName:String, builder:MusicMetaDataBuilder, saveJson:Bool = true):Song
+	{
+		#if sys
+		if (saveJson)
+		{
+			var json = builder.toJson();
+			var outputPath = 'assets/music/$fileName.json';
+			
+			try
+			{
+				File.saveContent(outputPath, json);
+				#if debug
+				trace('Saved metadata to: $outputPath');
+				#end
+			}
+			catch (e:Dynamic)
+			{
+				trace('Warning: Could not save metadata file: $e');
+			}
+		}
+		#end
+		
+		// Create the song normally, which will load the JSON we just saved
+		// (or the existing JSON if saveJson was false)
+		return new Song(fileName);
 	}
 }
