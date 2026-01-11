@@ -162,6 +162,8 @@ class MusicMetaDataBuilder
 	{
 		var parts = timeSignature.split("/");
 		var beatsPerBar = Std.parseInt(parts[0]);
+		if (beatsPerBar == null)
+			throw "Invalid time signature: numerator must be a valid integer";
 		var beat = measure * beatsPerBar;
 		return addCuePointAtBeat(name, beat);
 	}
@@ -216,6 +218,8 @@ class MusicMetaDataBuilder
 	{
 		var parts = timeSignature.split("/");
 		var beatsPerBar = Std.parseInt(parts[0]);
+		if (beatsPerBar == null)
+			throw "Invalid time signature: numerator must be a valid integer";
 		var beat = measure * beatsPerBar;
 		return addTempoChangeAtBeat(beat, newBpm);
 	}
@@ -265,8 +269,13 @@ class MusicMetaDataBuilder
 		if (artist == null || artist == "")
 			throw "Artist is required";
 		
-		// Sort tempo changes by time
-		tempoChanges.sort((a, b) -> Std.int(a.time - b.time));
+		// Sort tempo changes by time (use a comparison that handles floating point properly)
+		tempoChanges.sort(function(a, b) {
+			var diff = a.time - b.time;
+			if (diff < -0.001) return -1;
+			if (diff > 0.001) return 1;
+			return 0;
+		});
 		
 		return {
 			title: title,

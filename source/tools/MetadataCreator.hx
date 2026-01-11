@@ -192,6 +192,13 @@ class MetadataCreator
 	private static function addCuePoint():Void
 	{
 		var name = readLine("Enter cue point name: ");
+		if (name == null || name.trim() == "")
+		{
+			trace("Cue point name cannot be empty.");
+			editMenu();
+			return;
+		}
+		
 		var timeStr = readLine("Enter time in milliseconds: ");
 		var time = Std.parseFloat(timeStr);
 		
@@ -211,6 +218,13 @@ class MetadataCreator
 	private static function addCuePointAtBeat():Void
 	{
 		var name = readLine("Enter cue point name: ");
+		if (name == null || name.trim() == "")
+		{
+			trace("Cue point name cannot be empty.");
+			editMenu();
+			return;
+		}
+		
 		var beatStr = readLine("Enter beat number (0-based): ");
 		var beat = Std.parseFloat(beatStr);
 		
@@ -221,7 +235,8 @@ class MetadataCreator
 		else
 		{
 			builder.addCuePointAtBeat(name, beat);
-			var time = (beat * 60000) / builder.build().bpm;
+			var metadata = builder.build();
+			var time = (beat * 60000) / metadata.bpm;
 			trace('Cue point "$name" added at beat $beat (${time}ms)');
 		}
 		
@@ -231,6 +246,13 @@ class MetadataCreator
 	private static function addCuePointAtMeasure():Void
 	{
 		var name = readLine("Enter cue point name: ");
+		if (name == null || name.trim() == "")
+		{
+			trace("Cue point name cannot be empty.");
+			editMenu();
+			return;
+		}
+		
 		var measureStr = readLine("Enter measure/bar number (0-based): ");
 		var measure = Std.parseFloat(measureStr);
 		
@@ -399,7 +421,17 @@ class MetadataCreator
 	private static function readLine(prompt:String):String
 	{
 		Sys.print(prompt);
-		return Sys.stdin().readLine();
+		try
+		{
+			return Sys.stdin().readLine();
+		}
+		catch (e:Dynamic)
+		{
+			trace('\nError reading input: $e');
+			trace("Exiting...");
+			Sys.exit(1);
+			return "";  // Never reached, but needed for type checking
+		}
 	}
 }
 #else
