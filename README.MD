@@ -29,6 +29,11 @@ assets/
 ```
 
 ## 3. Formato dos Metadados de Música (.json)
+
+**NOVO:** Para uma maneira melhor de criar metadados de música, veja o [METADATA_GUIDE.md](METADATA_GUIDE.md) que explica como usar as novas ferramentas:
+- **MetadataCreator**: Ferramenta CLI interativa para criar/editar metadados
+- **MusicMetaDataBuilder**: API programática para construir metadados
+
 Os arquivos JSON de metadados de música devem seguir a seguinte estrutura:
 ```json
 {
