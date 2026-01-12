@@ -74,5 +74,12 @@ class DebugState extends DefaultState
 			if (FlxG.keys.justPressed.P)
 				conductor.debugMode = !conductor.debugMode;
 		}
+		
+		// Press M to open metadata editor
+		if (FlxG.keys.justPressed.M)
+		{
+			trace("Opening Metadata Editor...");
+			FlxG.switchState(new MetadataEditorState());
+		}
 	}
 }

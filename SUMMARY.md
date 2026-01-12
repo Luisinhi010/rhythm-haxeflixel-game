@@ -8,9 +8,26 @@ Previously, creating song metadata required manually editing JSON files, which w
 - **Difficult**: Hard to calculate beat/measure positions
 
 ## Solution
-This update provides three better ways to create metadata:
+This update provides four better ways to create metadata:
 
-### 1. Interactive CLI Tool (Best for most users)
+### 1. Visual GUI Editor (Best for most users!)
+**In-game graphical interface - the easiest way!**
+
+1. Run in debug mode: `lime test neko -debug`
+2. Press **M** key to open editor
+3. Use the visual form with TAB navigation
+4. Real-time preview before saving
+
+**Features:**
+- Intuitive graphical interface
+- Form-based input with validation
+- Tab navigation between fields
+- Visual page navigation
+- Add/remove cue points and tempo changes with buttons
+- Live JSON preview
+- Saves directly to `assets/music/`
+
+### 2. Interactive CLI Tool (For terminal users)
 ```bash
 lime build neko
 cd export/debug/neko/bin
@@ -24,7 +41,7 @@ cd export/debug/neko/bin
 - Preview JSON before saving
 - Edit existing files
 
-### 2. Programmatic Builder API (For developers)
+### 3. Programmatic Builder API (For developers)
 ```haxe
 import backend.MusicMetaDataBuilder;
 
@@ -46,7 +63,7 @@ File.saveContent("assets/music/MySong.json", json);
 - Built-in validation
 - JSON import/export
 
-### 3. Song.fromBuilder() Helper
+### 4. Song.fromBuilder() Helper
 ```haxe
 var song = Song.fromBuilder("MySong", builder, true);
 ```

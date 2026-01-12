@@ -2,7 +2,14 @@
 
 ## TL;DR - Quick Start
 
-### Option 1: Interactive Tool (Easiest)
+### Option 1: Visual GUI Editor (Easiest!)
+1. Run the game in debug mode: `lime test neko -debug`
+2. Press **M** key to open the Metadata Editor
+3. Fill in the form fields and navigate with TAB
+4. Add cue points and tempo changes as needed
+5. Preview and save!
+
+### Option 2: Interactive CLI Tool
 ```bash
 lime build neko
 cd export/debug/neko/bin
@@ -10,7 +17,7 @@ cd export/debug/neko/bin
 ```
 Follow the menu prompts to create/edit metadata.
 
-### Option 2: Programmatic (In Code)
+### Option 3: Programmatic (In Code)
 ```haxe
 import backend.MusicMetaDataBuilder;
 

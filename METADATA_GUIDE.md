@@ -4,13 +4,69 @@ This guide explains how to create and manage song metadata for the rhythm game u
 
 ## Overview
 
-The metadata system now provides three ways to create metadata:
+The metadata system now provides four ways to create metadata:
 
-1. **Interactive CLI Tool** (Recommended for beginners)
-2. **Programmatic Builder API** (For advanced users and in-game features)
-3. **Manual JSON editing** (Legacy method, not recommended)
+1. **Visual GUI Editor** (Recommended - easiest and most intuitive!)
+2. **Interactive CLI Tool** (Good for terminal users)
+3. **Programmatic Builder API** (For advanced users and in-game features)
+4. **Manual JSON editing** (Legacy method, not recommended)
 
-## Method 1: Interactive CLI Tool (Recommended)
+## Method 1: Visual GUI Editor (Recommended)
+
+The visual metadata editor provides an in-game graphical interface for creating and editing song metadata with real-time preview.
+
+### Launching the Editor
+
+1. Run the game in debug mode:
+   ```bash
+   lime test neko -debug
+   # or
+   lime test windows -debug
+   # or
+   lime test html5 -debug
+   ```
+
+2. Press **M** key to open the Metadata Editor
+
+### Using the Editor
+
+The editor has 4 pages:
+
+**Page 1 - Basic Information:**
+- Song Filename (required)
+- Song Title (required)
+- Artist (required)
+- BPM (required, must be positive)
+- Offset in milliseconds (default: 0)
+- Time Signature (default: 4/4)
+- Looped toggle
+
+**Page 2 - Cue Points:**
+- Add cue points to mark song sections
+- Specify by measure number (easiest!)
+- Each cue point has a name and position
+
+**Page 3 - Tempo Changes:**
+- Add tempo changes for songs with varying BPM
+- Specify by measure number
+- Each change has a measure and new BPM
+
+**Page 4 - Preview & Save:**
+- Review the generated JSON
+- Save to `assets/music/[filename].json`
+
+### Controls
+
+- **TAB**: Move to next field
+- **SHIFT + TAB**: Move to previous field
+- **Type**: Enter text in the active field
+- **BACKSPACE**: Delete characters
+- **Next/Previous buttons**: Navigate pages
+- **Add Entry button**: Add cue points or tempo changes
+- **Save button**: Save the metadata file
+- **ESC**: Exit editor and return to debug state
+
+## Method 2: Interactive CLI Tool
 
 The interactive CLI tool (`MetadataCreator`) provides a user-friendly way to create and edit metadata through a menu-driven interface.
 
@@ -61,7 +117,7 @@ haxe -main tools.MetadataCreator -lib hxcpp -cpp bin
 
 The tool will create `assets/music/MySong.json` with all the metadata.
 
-## Method 2: Programmatic Builder API
+## Method 3: Programmatic Builder API
 
 For advanced users or in-game metadata creation, use the `MusicMetaDataBuilder` class.
 
@@ -165,7 +221,7 @@ builder.addTempoChangeAtBeat(64, 140);         // Automatically converts beat 64
 builder.addTempoChangeAtMeasure(16, 150);      // Automatically converts measure 16 to ms
 ```
 
-## Method 3: Manual JSON Editing (Not Recommended)
+## Method 4: Manual JSON Editing (Not Recommended)
 
 You can still manually create/edit JSON files, but this is error-prone and not recommended.
 
