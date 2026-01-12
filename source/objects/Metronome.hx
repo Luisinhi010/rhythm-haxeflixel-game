@@ -17,7 +17,6 @@ class Metronome
 	private var accentPitch:Float = 1.12246;
 	private var accentInterval:Int = 4; // Accent every N beats
 
-
 	public function new() 
 	{
 		sound = Paths.getSound(soundName);
