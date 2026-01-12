@@ -151,21 +151,6 @@ class FilePath
 		return NONE;
 	}
 
-	public static function existsImageExt(fileName:String, ignoreMod:Bool = false):FilePathExtension
-	{
-		return findFirstExtension(fileName, [PNG], IMAGES, ignoreMod);
-	}
-
-	public static function existsAudioExt(fileName:String, type:FilePathType, ignoreMod:Bool = false):FilePathExtension
-	{
-		return findFirstExtension(fileName, [MP3, OGG, WAV], type, ignoreMod);
-	}
-
-	public static function existsTextExt(fileName:String, type:FilePathType, ignoreMod:Bool = false):FilePathExtension // I hope i find a better way to do this
-	{
-		return findFirstExtension(fileName, [JSON, TXT, XML, SOL, HX], type, ignoreMod);
-	}
-
 	public static function getFile(fileName:String, ext:FilePathExtension, type:FilePathType, ignoreMod:Bool = false):String
 	{
 		if (fileName == null || fileName == "")
@@ -181,117 +166,80 @@ class FilePath
 		var modPath = getMod() + absPath;
 
 		if (existsPath(modPath, type) && !ignoreMod)
-		{
-			#if debug trace("Mod file found: " + modPath); #end
 			return modPath;
-		}
 
 		if (existsPath(filePath, type))
-		{
-			#if debug trace("File found: " + filePath); #end
 			return filePath;
-		}
+
 		#if debug trace("File not found: " + fileName + getExtension(ext)); #end
 		return null;
 	}
 
-	public static function getImagePath(imageName:String, ignoreMod:Bool = false):String
+	private static function getResourcePath(fileName:String, type:FilePathType, extensions:Array<FilePathExtension>, ignoreMod:Bool = false):String
 	{
-		#if debug trace("Getting image path for: " + imageName); #end
-		var ext = existsImageExt(imageName, ignoreMod);
+		if (fileName == null || fileName == "")
+		{
+			#if DEBUG
+			throw "File name cannot be null or empty.";
+			#end
+			return null;
+		}
+		#if debug trace("Getting path for: " + fileName + " (type: " + Type.enumConstructor(type) + ")"); #end
+		var ext = findFirstExtension(fileName, extensions, type, ignoreMod);
 		if (ext == NONE)
 			return null;
+		return getFile(fileName, ext, type, ignoreMod);
+	}
 
-		return getFile(imageName, ext, IMAGES, ignoreMod);
+	public static function getImagePath(imageName:String, ignoreMod:Bool = false):String
+	{
+		return getResourcePath(imageName, IMAGES, [PNG], ignoreMod);
 	}
 
 	public static function getSoundPath(soundName:String, ignoreMod:Bool = false):String
 	{
-		#if debug trace("Getting sound path for: " + soundName); #end
-		var ext = existsAudioExt(soundName, SOUNDS, ignoreMod);
-		if (ext == NONE)
-			return null;
-
-		return getFile(soundName, ext, SOUNDS, ignoreMod);
+		return getResourcePath(soundName, SOUNDS, [MP3, OGG, WAV], ignoreMod);
 	}
 
 	public static function getMusicPath(musicName:String, ignoreMod:Bool = false):String
 	{
-		#if debug trace("Getting music path for: " + musicName); #end
-		var ext = existsAudioExt(musicName, MUSIC, ignoreMod);
-		if (ext == NONE)
-			return null;
-
-		return getFile(musicName, ext, MUSIC, ignoreMod);
+		return getResourcePath(musicName, MUSIC, [MP3, OGG, WAV], ignoreMod);
 	}
 
 	public static function getMusicDataPath(dataName:String, ignoreMod:Bool = false):String
 	{
-		#if debug trace("Getting data path for: " + dataName); #end
-		var ext = existsTextExt(dataName, METADATA, ignoreMod);
-		if (ext != JSON) // Only JSON is supported for music metadata
-			return null;
-
-		return getFile(dataName, ext, METADATA, ignoreMod);
+		var path = getResourcePath(dataName, METADATA, [JSON], ignoreMod);
+		return path; // Only JSON is supported for music metadata, fow now...
 	}
+
 	public static function getShaderPath(shaderName:String, ignoreMod:Bool = false):String
 	{
-		#if debug trace("Getting shader path for: " + shaderName); #end
-		var ext = findFirstExtension(shaderName, [GLSL], SHADERS, ignoreMod);
-		if (ext == NONE)
-			return null;
-
-		return getFile(shaderName, ext, SHADERS, ignoreMod);
+		return getResourcePath(shaderName, SHADERS, [GLSL], ignoreMod);
 	}
 
 	public static function getFontPath(fontName:String, ignoreMod:Bool = false):String
 	{
-		#if debug trace("Getting font path for: " + fontName); #end
-		var ext = findFirstExtension(fontName, [TTF], FONTS, ignoreMod);
-		if (ext == NONE)
-			return null;
-
-		return getFile(fontName, ext, FONTS, ignoreMod);
+		return getResourcePath(fontName, FONTS, [TTF], ignoreMod);
 	}
 
 	public static function getTextPath(textName:String, type:FilePathType, ignoreMod:Bool = false):String
 	{
-		#if debug trace("Getting text path for: " + textName); #end
-		var ext = existsTextExt(textName, type, ignoreMod);
-		if (ext == NONE)
-			return null;
-
-		return getFile(textName, ext, type, ignoreMod);
+		return getResourcePath(textName, type, [JSON, TXT, XML, SOL, HX], ignoreMod);
 	}
 
 	public static function getConfigPath(configName:String, ignoreMod:Bool = false):String
 	{
-		#if debug trace("Getting config path for: " + configName); #end
-		var ext = existsTextExt(configName, CONFIG, ignoreMod);
-		if (ext == NONE)
-			return null;
-
-		return getFile(configName, ext, CONFIG, ignoreMod);
+		return getResourcePath(configName, CONFIG, [JSON, TXT, XML], ignoreMod);
 	}
 
 	public static function getDataPath(dataName:String, ignoreMod:Bool = false):String
 	{
-		#if debug trace("Getting data path for: " + dataName); #end
-		var ext = existsTextExt(dataName, DATA, ignoreMod);
-		if (ext == NONE)
-			return null;
-
-		return getFile(dataName, ext, DATA, ignoreMod);
+		return getResourcePath(dataName, DATA, [JSON, TXT, XML], ignoreMod);
 	}
 
 	public static function getSavesPath(savesName:String, ignoreMod:Bool = false):String
 	{
-		#if debug trace("Getting saves path for: " + savesName); #end
-		var ext = existsTextExt(savesName, SAVES, ignoreMod);
-		if (ext == NONE)
-			return null;
-
-		return getFile(savesName, ext, SAVES, ignoreMod);
+		return getResourcePath(savesName, SAVES, [JSON, TXT, XML], ignoreMod);
 	}
 
 	/**
@@ -314,18 +262,24 @@ class FilePath
 	 * @param ignoreMod Whether to ignore the mods folder.
 	 * @return true if any file with that name exists, false otherwise.
 	 */
-	public static function resourceExists(fileName:String, type:FilePathType, ignoreMod:Bool = false):Bool
+	public static function resourceExistsOfType(fileName:String, type:FilePathType, ignoreMod:Bool = false):Bool
 	{
-		var ext = existsTextExt(fileName, type, ignoreMod);
-		if (ext != NONE)
-			return true;
-
-		ext = existsAudioExt(fileName, type, ignoreMod);
-		if (ext != NONE)
-			return true;
-
-		ext = existsImageExt(fileName, ignoreMod);
-		return ext != NONE;
+		var extensions = switch (type)
+		{
+			case IMAGES:
+				[PNG];
+			case SOUNDS | MUSIC:
+				[MP3, OGG, WAV];
+			case SHADERS:
+				[GLSL];
+			case FONTS:
+				[TTF];
+			case CONFIG | DATA | SAVES | METADATA | TEXT | SCRIPTS | NONE:
+				[JSON, TXT, XML, SOL, HX];
+			default:
+				[];
+		};
+		return resourceExists(fileName, type, extensions, ignoreMod);
 	}
 
 	/**
@@ -356,6 +310,22 @@ class FilePath
 	}
 
 	/**
+	 * Checks if a specific resource file exists by verifying if any of the provided extensions
+	 * match an existing file in the specified type path.
+	 * 
+	 * @param fileName The file name without extension to search for.
+	 * @param type The category/type of file path to search within.
+	 * @param extensions Array of possible file extensions to check for the given file name.
+	 * @param ignoreMod If true, excludes the mods folder from the search. Defaults to false.
+	 * @return true if a file matching the fileName and one of the extensions exists, false otherwise.
+	 */
+	private static function resourceExists(fileName:String, type:FilePathType, extensions:Array<FilePathExtension>, ignoreMod:Bool = false):Bool
+	{
+		var ext = findFirstExtension(fileName, extensions, type, ignoreMod);
+		return ext != NONE;
+	}
+
+	/**
 	 * Checks if a font file exists.
 	 * @param fontName The font file name (without extension).
 	 * @param ignoreMod Whether to ignore the mods folder.
@@ -363,8 +333,7 @@ class FilePath
 	 */
 	public static function fontExists(fontName:String, ignoreMod:Bool = false):Bool
 	{
-		var ext = findFirstExtension(fontName, [TTF], FONTS, ignoreMod);
-		return ext != NONE;
+		return resourceExists(fontName, FONTS, [TTF], ignoreMod);
 	}
 
 	/**
@@ -375,8 +344,7 @@ class FilePath
 	 */
 	public static function shaderExists(shaderName:String, ignoreMod:Bool = false):Bool
 	{
-		var ext = findFirstExtension(shaderName, [GLSL], SHADERS, ignoreMod);
-		return ext != NONE;
+		return resourceExists(shaderName, SHADERS, [GLSL], ignoreMod);
 	}
 
 	/**
@@ -387,8 +355,7 @@ class FilePath
 	 */
 	public static function imageExists(imageName:String, ignoreMod:Bool = false):Bool
 	{
-		var ext = existsImageExt(imageName, ignoreMod);
-		return ext != NONE;
+		return resourceExists(imageName, IMAGES, [PNG], ignoreMod);
 	}
 
 	/**
@@ -399,8 +366,7 @@ class FilePath
 	 */
 	public static function soundExists(soundName:String, ignoreMod:Bool = false):Bool
 	{
-		var ext = existsAudioExt(soundName, SOUNDS, ignoreMod);
-		return ext != NONE;
+		return resourceExists(soundName, SOUNDS, [MP3, OGG, WAV], ignoreMod);
 	}
 
 	/**
@@ -411,7 +377,6 @@ class FilePath
 	 */
 	public static function musicExists(musicName:String, ignoreMod:Bool = false):Bool
 	{
-		var ext = existsAudioExt(musicName, MUSIC, ignoreMod);
-		return ext != NONE;
+		return resourceExists(musicName, MUSIC, [MP3, OGG, WAV], ignoreMod);
 	}
 }

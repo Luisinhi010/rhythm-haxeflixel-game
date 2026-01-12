@@ -621,7 +621,7 @@ class Paths
 			case SHADERS:
 				return FilePath.shaderExists(resourceName, ignoreMod);
 			default:
-				return FilePath.resourceExists(resourceName, type, ignoreMod);
+				return FilePath.resourceExistsOfType(resourceName, type, ignoreMod);
 		}
 	}
 

@@ -3,7 +3,6 @@ package states;
 import backend.FilePath;
 import backend.MusicMetaData;
 import flixel.FlxG;
-import flixel.FlxSprite;
 import flixel.sound.FlxSound;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;

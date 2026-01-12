@@ -6,8 +6,8 @@ import openfl.display.Sprite;
 class Main extends Sprite
 {
 	var options = {
-		gameWidth: 1280,
-		gameHeight: 720,
+		gameWidth: 1920,
+		gameHeight: 1080,
 		initialState: #if debug states.DebugState #else states.PlayState #end,
 		framerate: 60,
 		skipSplash: true,
