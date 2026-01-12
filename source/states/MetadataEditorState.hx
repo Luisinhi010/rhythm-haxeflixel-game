@@ -179,8 +179,9 @@ class MetadataEditorState extends DefaultState
 			text.setFormat(null, 14, FlxColor.WHITE, LEFT);
 			add(text);
 			
+			var index = i; // Capture value, not reference
 			var removeBtn = new FlxButton(650, yPos - 5, "Remove", function() {
-				cuePoints.splice(i, 1);
+				cuePoints.splice(index, 1);
 				setupPage();
 			});
 			removeBtn.label.setFormat(null, 10, FlxColor.BLACK, CENTER);
@@ -213,8 +214,9 @@ class MetadataEditorState extends DefaultState
 			text.setFormat(null, 14, FlxColor.WHITE, LEFT);
 			add(text);
 			
+			var index = i; // Capture value, not reference
 			var removeBtn = new FlxButton(650, yPos - 5, "Remove", function() {
-				tempoChanges.splice(i, 1);
+				tempoChanges.splice(index, 1);
 				setupPage();
 			});
 			removeBtn.label.setFormat(null, 10, FlxColor.BLACK, CENTER);
@@ -339,7 +341,13 @@ class MetadataEditorState extends DefaultState
 		{
 			var measure = Std.parseFloat(cp.measure);
 			if (measure != null)
+			{
 				builder.addCuePointAtMeasure(cp.name, measure);
+			}
+			else
+			{
+				trace('Warning: Skipping cue point "${cp.name}" - invalid measure: ${cp.measure}');
+			}
 		}
 		
 		// Add tempo changes
@@ -348,7 +356,13 @@ class MetadataEditorState extends DefaultState
 			var measure = Std.parseFloat(tc.measure);
 			var bpm = Std.parseFloat(tc.bpm);
 			if (measure != null && bpm != null)
+			{
 				builder.addTempoChangeAtMeasure(measure, bpm);
+			}
+			else
+			{
+				trace('Warning: Skipping tempo change - invalid values: measure=${tc.measure}, bpm=${tc.bpm}');
+			}
 		}
 		
 		return builder;
@@ -456,30 +470,26 @@ class InputField
 		cursorBlink += elapsed;
 		cursor.visible = (cursorBlink % 1.0) < 0.5;
 		
-		// Handle text input
-		var input = FlxG.keys.getIsDown();
-		for (key in input)
+		// Handle text input - check once per frame
+		if (FlxG.keys.justPressed.ANY)
 		{
-			if (FlxG.keys.justPressed.ANY)
+			// Handle backspace
+			if (FlxG.keys.justPressed.BACKSPACE)
 			{
-				// Handle backspace
-				if (FlxG.keys.justPressed.BACKSPACE)
+				if (value.length > 0)
 				{
-					if (value.length > 0)
-					{
-						value = value.substr(0, value.length - 1);
-						updateValue();
-					}
+					value = value.substr(0, value.length - 1);
+					updateValue();
 				}
-				// Handle alphanumeric and common symbols
-				else
+			}
+			// Handle alphanumeric and common symbols
+			else
+			{
+				var char = getKeyChar();
+				if (char != "")
 				{
-					var char = getKeyChar();
-					if (char != "")
-					{
-						value += char;
-						updateValue();
-					}
+					value += char;
+					updateValue();
 				}
 			}
 		}
