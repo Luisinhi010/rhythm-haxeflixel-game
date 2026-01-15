@@ -61,8 +61,14 @@ class UtilTester extends FlxGroupContainer
 	
 	// ArrayUtil test objects
 	private var arrayElements:Array<FlxSprite> = [];
+	private var arrayNumberTexts:Array<FlxText> = [];
 	private var arrayNumbers:Array<Int> = [1, 2, 3, 4, 5, 6];
 	private var selectedIndex:Int = -1;
+	private var arrayColX:Float;
+	private var arrayElementSpacing:Float;
+
+	// MathUtil rotation text reference
+	private var rotationText:FlxText;
 	
 	// Layout system
 	private var contentHeight:Float = 0; // Available height for content
@@ -180,9 +186,9 @@ class UtilTester extends FlxGroupContainer
 		rotationSprite.offset.set(0, 2);
 		mathSection.add(rotationSprite);
 		
-		var rotText = new FlxText(col2X + 150, yOffset + 35, colWidth - 150, "");
-		rotText.setFormat(null, 12, FlxColor.WHITE, LEFT);
-		mathSection.add(rotText);
+		rotationText = new FlxText(col2X + 150, yOffset + 35, colWidth - 150, "");
+		rotationText.setFormat(null, 12, FlxColor.WHITE, LEFT);
+		mathSection.add(rotationText);
 		
 		yOffset += 90;
 		
@@ -274,19 +280,21 @@ class UtilTester extends FlxGroupContainer
 		
 		// Create visual array elements (adjust for column width)
 		var elementSize = Std.int(Math.min(50, (colWidth - 30) / arrayNumbers.length));
-		var elementSpacing = elementSize + 10;
+		arrayColX = col1X;
+		arrayElementSpacing = elementSize + 10;
 		
 		for (i in 0...arrayNumbers.length)
 		{
-			var element = new FlxSprite(col1X + i * elementSpacing, yOffset);
+			var element = new FlxSprite(arrayColX + i * arrayElementSpacing, yOffset);
 			element.makeGraphic(elementSize, elementSize, FlxColor.fromRGB(100, 150, 200));
 			arraySection.add(element);
 			
-			var numText = new FlxText(col1X + i * elementSpacing, yOffset + (elementSize/2) - 10, elementSize, Std.string(arrayNumbers[i]));
+			var numText = new FlxText(arrayColX + i * arrayElementSpacing, yOffset + (elementSize / 2) - 10, elementSize, Std.string(arrayNumbers[i]));
 			numText.setFormat(null, 20, FlxColor.WHITE, CENTER);
 			arraySection.add(numText);
 			
 			arrayElements.push(element);
+			arrayNumberTexts.push(numText);
 		}
 		
 		yOffset += elementSize + 20;
@@ -302,7 +310,7 @@ class UtilTester extends FlxGroupContainer
 		firstArrow.setFormat(null, 9, FlxColor.LIME, CENTER);
 		arraySection.add(firstArrow);
 		
-		var lastArrow = new FlxText(col1X + (arrayNumbers.length - 1) * elementSpacing + 5, yOffset, elementSize, "↑\nLAST");
+		var lastArrow = new FlxText(col1X + (arrayNumbers.length - 1) * arrayElementSpacing + 5, yOffset, elementSize, "↑\nLAST");
 		lastArrow.setFormat(null, 9, FlxColor.ORANGE, CENTER);
 		arraySection.add(lastArrow);
 		
@@ -392,21 +400,15 @@ class UtilTester extends FlxGroupContainer
 				for (i in 0...arrayNumbers.length)
 				{
 					var element = arrayElements[i];
-					var targetX = 20 + i * 60;
+					var targetX = arrayColX + i * arrayElementSpacing;
 					
 					// Animate to new position
 					FlxTween.tween(element, {x: targetX}, 0.3);
 					
 					// Update number text
-					if (i < mathSection.length)
+					if (i < arrayNumberTexts.length)
 					{
-						var textIndex = mathSection.members.indexOf(element) + 1;
-						if (textIndex < mathSection.members.length)
-						{
-							var txt = cast(mathSection.members[textIndex], FlxText);
-							if (txt != null)
-								txt.text = Std.string(arrayNumbers[i]);
-						}
+						arrayNumberTexts[i].text = Std.string(arrayNumbers[i]);
 					}
 				}
 				
@@ -415,10 +417,9 @@ class UtilTester extends FlxGroupContainer
 				for (i in 0...arrayElements.length)
 				{
 					var brightness = (i == selectedIndex) ? 1.5 : 0.7;
+					var clampedBrightness = Math.min(brightness, 1.0);
 					arrayElements[i].color = FlxColor.fromRGBFloat(
-						brightness * 100/255,
-						brightness * 150/255, 
-						brightness * 200/255
+					clampedBrightness * 100 / 255, clampedBrightness * 150 / 255, clampedBrightness * 200 / 255
 					);
 				}
 		}
@@ -431,6 +432,9 @@ class UtilTester extends FlxGroupContainer
 		// Update only active section
 		if (!mathSection.active && !stringSection.active && !arraySection.active)
 			return;
+		
+		// Update timer unconditionally for all sections
+		timeCounter += elapsed;
 		
 		// MathUtil updates
 		if (mathSection.active)
@@ -471,18 +475,16 @@ class UtilTester extends FlxGroupContainer
 			
 			// Update rotation text
 			var radians = MathUtil.degToRad(rotationDegrees);
-			var rotText = cast(mathSection.members[mathSection.members.length - 11], FlxText);
-			if (rotText != null)
+			if (rotationText != null)
 			{
-				rotText.text = '${MathUtil.roundTo(rotationDegrees, 1)}° = ${MathUtil.roundTo(radians, 3)} rad';
+				rotationText.text = '${MathUtil.roundTo(rotationDegrees, 1)}° = ${MathUtil.roundTo(radians, 3)} rad';
 			}
 		}
 		
 		// StringUtil updates
 		if (stringSection.active)
 		{
-			// Update timer
-			timeCounter += elapsed;
+			// Update timer display
 			timeText.text = StringUtil.formatTime(timeCounter);
 		}
 		
