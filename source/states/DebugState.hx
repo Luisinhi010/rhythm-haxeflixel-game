@@ -12,6 +12,7 @@ import objects.Conductor;
 import objects.ConductorDebugger;
 import objects.Metronome;
 import objects.Song;
+import objects.UtilTester;
 
 class DebugState extends DefaultState
 {
@@ -22,6 +23,9 @@ class DebugState extends DefaultState
 	var conductor:Conductor;
 	var debugger:ConductorDebugger;
 	var metronome:Metronome;
+	var lastplaying:Bool;
+	var utilTester:UtilTester;
+	var showTester:Bool = false;
 
 	override public function create():Void
 	{
@@ -38,10 +42,15 @@ class DebugState extends DefaultState
 		song = new Song("Test", true);
 		conductor = new Conductor(song);
 		add(conductor);
-		// Create and add debugger as a FlxTypedGroup
+		// Create and add debugger
 		debugger = new ConductorDebugger(conductor);
 		debugger.y = FlxG.height - 100;
 		add(debugger);
+		// Create utility tester
+		utilTester = new UtilTester();
+		utilTester.y = 0;
+		utilTester.visible = false;
+		add(utilTester);
 		
 		metronome = new Metronome();
 		conductor.beatHit = (event:BeatEvent) ->
@@ -58,7 +67,7 @@ class DebugState extends DefaultState
 
 		if (conductor != null)
 		{
-			if (FlxG.keys.justPressed.SPACE)
+			if (FlxG.keys.justPressed.SPACE && !showTester)
 			{
 				if (conductor.playing)
 					conductor.pause();
@@ -88,6 +97,33 @@ class DebugState extends DefaultState
 				debugger.toggleDebugMode();
 				debugger.markDirty();
 			}
+		}
+		// Toggle utility tester
+		if (FlxG.keys.justPressed.T)
+		{
+			if (!showTester)
+			{
+				lastplaying = conductor.playing;
+				conductor.pause();
+			}
+			else
+				conductor.playing = lastplaying;
+			showTester = !showTester;
+			utilTester.visible = showTester;
+			utilTester.active = showTester;
+		}
+
+		// Utility tester controls
+		if (showTester && utilTester != null)
+		{
+			if (FlxG.keys.justPressed.ONE)
+				utilTester.switchSection(0);
+			if (FlxG.keys.justPressed.TWO)
+				utilTester.switchSection(1);
+			if (FlxG.keys.justPressed.THREE)
+				utilTester.switchSection(2);
+			if (FlxG.keys.justPressed.SPACE)
+				utilTester.executeTest();
 		}
 	}
 }
