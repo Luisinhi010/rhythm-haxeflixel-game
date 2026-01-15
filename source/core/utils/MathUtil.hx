@@ -68,6 +68,7 @@ class MathUtil
 	
 	/**
 	 * Maps a value from one range to another.
+	 * If inMax == inMin, returns outMin to avoid division by zero.
 	 * 
 	 * @param value Value to map
 	 * @param inMin Input range minimum
@@ -78,6 +79,8 @@ class MathUtil
 	 */
 	public static inline function mapRange(value:Float, inMin:Float, inMax:Float, outMin:Float, outMax:Float):Float
 	{
+		if (inMax == inMin)
+			return outMin;
 		return FlxMath.remapToRange(value, inMin, inMax, outMin, outMax);
 	}
 	
@@ -118,17 +121,22 @@ class MathUtil
 	 */
 	public static inline function approxEqual(a:Float, b:Float, eps:Float = 0.0001):Bool
 	{
-		return Math.abs(a - b) < eps;
+		return Math.abs(a - b) <= eps;
 	}
 	
 	/**
 	 * Returns the sign of a number.
+	 * Preserves float semantics for small magnitudes.
 	 * 
 	 * @return 1 if positive, -1 if negative, 0 if zero
 	 */
 	public static inline function sign(x:Float):Int
 	{
-		return FlxMath.signOf(Std.int(x));
+		if (x < 0)
+			return -1;
+		if (x > 0)
+			return 1;
+		return 0;
 	}
 	
 	/**
