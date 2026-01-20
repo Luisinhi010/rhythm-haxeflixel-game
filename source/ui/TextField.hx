@@ -69,6 +69,7 @@ class TextField extends FlxSpriteGroup
 			{
 				cursorTimer = 0;
 				showCursor = !showCursor;
+				updateText();
 			}
 			
 			// Handle keyboard input
@@ -81,6 +82,15 @@ class TextField extends FlxSpriteGroup
 			{
 				focused = false;
 				bg.color = FlxColor.fromRGB(40, 40, 40);
+				showCursor = false;
+				updateText();
+			}
+			else if (FlxG.keys.justPressed.ESCAPE)
+			{
+				focused = false;
+				bg.color = FlxColor.fromRGB(40, 40, 40);
+				showCursor = false;
+				updateText();
 			}
 			else
 			{
@@ -92,6 +102,10 @@ class TextField extends FlxSpriteGroup
 					updateText();
 				}
 			}
+		}
+		else
+		{
+			showCursor = false;
 		}
 		#end
 	}

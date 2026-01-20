@@ -125,5 +125,11 @@ class DebugState extends DefaultState
 			if (FlxG.keys.justPressed.SPACE)
 				utilTester.executeTest();
 		}
+		
+		// Switch to metadata editor
+		if (FlxG.keys.justPressed.M)
+		{
+			FlxG.switchState(new states.MetadataEditorState());
+		}
 	}
 }

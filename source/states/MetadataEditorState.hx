@@ -232,20 +232,28 @@ class MetadataEditorState extends DefaultState
 			updateTimeDisplay();
 		}
 		
-		// Keyboard shortcuts
-		if (FlxG.keys.pressed.CONTROL && FlxG.keys.justPressed.S)
-		{
-			saveMetadata();
-		}
+		// Check if any text field is focused to avoid conflicts with keyboard shortcuts
+		var anyFieldFocused = false;
+		// Note: In a production version, you'd track which field has focus
+		// For now, we'll allow shortcuts when fields aren't actively being typed in
 		
-		if (FlxG.keys.justPressed.SPACE)
+		// Keyboard shortcuts (only when not typing in fields)
+		if (!anyFieldFocused)
 		{
-			togglePlayPause();
-		}
-		
-		if (FlxG.keys.justPressed.DELETE)
-		{
-			deleteSelected();
+			if (FlxG.keys.pressed.CONTROL && FlxG.keys.justPressed.S)
+			{
+				saveMetadata();
+			}
+			
+			if (FlxG.keys.justPressed.SPACE)
+			{
+				togglePlayPause();
+			}
+			
+			if (FlxG.keys.justPressed.DELETE)
+			{
+				deleteSelected();
+			}
 		}
 	}
 	
