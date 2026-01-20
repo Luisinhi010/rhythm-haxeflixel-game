@@ -59,8 +59,69 @@ class FilePath
 {
 	// This class is used to manage file paths in the game.
 	// It provides static methods to get paths for various resources.
+	/**
+	 * Validates that a file name is not null or empty.
+	 * @param fileName The file name to validate
+	 * @return true if valid, false otherwise
+	 */
+	private static function isValidFileName(fileName:String):Bool
+	{
+		if (StringUtil.isEmpty(fileName))
+		{
+			#if debug
+			throw "File name cannot be null or empty.";
+			#end
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Resolves a file path, checking mods folder first, then assets.
+	 * @param absPath The absolute path (relative to assets/ or mods/)
+	 * @param type The file type
+	 * @param ignoreMod Whether to skip mod folder check
+	 * @return The resolved path, or null if not found
+	 */
+	private static function resolveFilePath(absPath:String, type:FilePathType, ignoreMod:Bool):String
+	{
+		var modPath = getMod() + absPath;
+		var filePath = get() + absPath;
+
+		if (!ignoreMod && existsPath(modPath, type))
+			return modPath;
+
+		if (existsPath(filePath, type))
+			return filePath;
+
+		return null;
+	}
+
+	/**
+	 * Gets the array of extensions for a given file type.
+	 * @param type The file type
+	 * @return Array of possible extensions for that type
+	 */
+	private static function getExtensionsForType(type:FilePathType):Array<FilePathExtension>
+	{
+		return switch (type)
+		{
+			case IMAGES: [PNG];
+			case SOUNDS | MUSIC: [MP3, OGG, WAV];
+			case SHADERS: [GLSL];
+			case FONTS: [TTF];
+			case METADATA: [JSON];
+			case CONFIG | DATA | SAVES | TEXT | SCRIPTS: [JSON, TXT, XML, SOL, HX];
+			default: [];
+		};
+	}
+	
 	public static function getExtension(ext:FilePathExtension):String
+	{
+		if (ext == NONE)
+			return "";
 		return "." + Type.enumConstructor(ext).toLowerCase();
+	}
 
 	public static function getType(type:FilePathType):String
 		return Type.enumConstructor(type).toLowerCase();
@@ -125,26 +186,18 @@ class FilePath
 
 	public static function existsFile(fileName:String, ext:FilePathExtension, type:FilePathType, ignoreMod:Bool = false):Bool
 	{
-		if (fileName == null || fileName == "")
-		{
-			#if debug
-			throw "File name cannot be null or empty.";
-			#end
+		if (!isValidFileName(fileName))
 			return false;
-		}
+
 		var absPath = getPath(type) + fileName + getExtension(ext);
-		var filePath = get() + absPath;
-		var modPath = getMod() + absPath;
-
-		if (!ignoreMod && existsPath(modPath, type))
-			return true;
-
-		return existsPath(filePath, type);
+		return resolveFilePath(absPath, type, ignoreMod) != null;
 	}
 
 	private static function findFirstExtension(fileName:String, extensions:Array<FilePathExtension>, type:FilePathType,
 			ignoreMod:Bool = false):FilePathExtension
 	{
+		if (extensions == null || extensions.length == 0)
+			return NONE;
 		for (ext in extensions)
 		{
 			if (existsFile(fileName, ext, type, ignoreMod))
@@ -155,41 +208,41 @@ class FilePath
 
 	public static function getFile(fileName:String, ext:FilePathExtension, type:FilePathType, ignoreMod:Bool = false):String
 	{
-		if (fileName == null || fileName == "")
-		{
-			#if debug
-			throw "File name cannot be null or empty.";
-			#end
+		if (!isValidFileName(fileName))
 			return null;
-		}
+
 		#if debug trace("Getting file: " + fileName + getExtension(ext)); #end
+
 		var absPath = getPath(type) + fileName + getExtension(ext);
-		var filePath = get() + absPath;
-		var modPath = getMod() + absPath;
+		var result = resolveFilePath(absPath, type, ignoreMod);
+		
+		if (result == null)
+		{
+			#if debug trace("File not found: " + fileName + getExtension(ext)); #end
+		}
 
-		if (existsPath(modPath, type) && !ignoreMod)
-			return modPath;
-
-		if (existsPath(filePath, type))
-			return filePath;
-
-		#if debug trace("File not found: " + fileName + getExtension(ext)); #end
-		return null;
+		return result;
 	}
 
 	private static function getResourcePath(fileName:String, type:FilePathType, extensions:Array<FilePathExtension>, ignoreMod:Bool = false):String
 	{
-		if (fileName == null || fileName == "")
+		if (!isValidFileName(fileName))
+			return null;
+
+		if (extensions == null || extensions.length == 0)
 		{
 			#if debug
-			throw "File name cannot be null or empty.";
+			trace('No extensions provided for type: ${Type.enumConstructor(type)}');
 			#end
 			return null;
 		}
+
 		#if debug trace("Getting path for: " + fileName + " (type: " + Type.enumConstructor(type) + ")"); #end
+
 		var ext = findFirstExtension(fileName, extensions, type, ignoreMod);
 		if (ext == NONE)
 			return null;
+
 		return getFile(fileName, ext, type, ignoreMod);
 	}
 
@@ -266,21 +319,7 @@ class FilePath
 	 */
 	public static function resourceExistsOfType(fileName:String, type:FilePathType, ignoreMod:Bool = false):Bool
 	{
-		var extensions = switch (type)
-		{
-			case IMAGES:
-				[PNG];
-			case SOUNDS | MUSIC:
-				[MP3, OGG, WAV];
-			case SHADERS:
-				[GLSL];
-			case FONTS:
-				[TTF];
-			case CONFIG | DATA | SAVES | METADATA | TEXT | SCRIPTS | NONE:
-				[JSON, TXT, XML, SOL, HX];
-			default:
-				[];
-		};
+		var extensions = getExtensionsForType(type);
 		return resourceExists(fileName, type, extensions, ignoreMod);
 	}
 
@@ -323,6 +362,9 @@ class FilePath
 	 */
 	private static function resourceExists(fileName:String, type:FilePathType, extensions:Array<FilePathExtension>, ignoreMod:Bool = false):Bool
 	{
+		if (!isValidFileName(fileName) || extensions == null || extensions.length == 0)
+			return false;
+		
 		var ext = findFirstExtension(fileName, extensions, type, ignoreMod);
 		return ext != NONE;
 	}

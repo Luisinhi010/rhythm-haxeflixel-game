@@ -64,14 +64,12 @@ class Paths
 	}
 
 	/**
-	 * Loads the contents of a music metadata JSON file.
-	 * @param dataName The data file name (without extension).
-	 * @param ignoreMod Whether to ignore the mods folder.
-	 * @return The JSON file contents as a string, or null if not found.
+	 * Helper method to load text content from a file path.
+	 * @param path The file path
+	 * @return The text content, or null if not found
 	 */
-	public static function getMusicData(dataName:String, ignoreMod:Bool = false):String
+	private static function loadTextContent(path:String):String
 	{
-		var path = FilePath.getMusicDataPath(dataName, ignoreMod);
 		if (path == null)
 			return null;
 
@@ -85,6 +83,113 @@ class Paths
 		}
 
 		return textCache.get(path);
+	}
+
+	/**
+	 * Helper method to load a Sound asset with caching.
+	 * @param path The file path
+	 * @return The Sound, or null if not found
+	 */
+	private static function loadSoundAsset(path:String):Sound
+	{
+		if (path == null)
+			return null;
+
+		if (!soundCache.exists(path))
+			soundCache.set(path, OpenFLAssets.getSound(path, false)); // useCache = false, we handle it
+
+		return soundCache.get(path);
+	}
+
+	/**
+	 * Helper method to create an async loader for text content.
+	 * @param path The file path
+	 * @param pathGetter Function to get the path from FilePath
+	 * @return A Future that will be completed with the text content
+	 */
+	private static function createTextAsyncLoader(path:String):Future<String>
+	{
+		var promise = new Promise<String>();
+
+		if (path == null)
+		{
+			promise.complete(null);
+			return promise.future;
+		}
+
+		if (textCache.exists(path))
+		{
+			promise.complete(textCache.get(path));
+			return promise.future;
+		}
+
+		OpenFLAssets.loadText(path).onComplete(function(text)
+		{
+			textCache.set(path, text);
+			promise.complete(text);
+		}).onError(function(error)
+		{
+				promise.error(error);
+		});
+
+		return promise.future;
+	}
+
+	/**
+	 * Helper method to create an async loader for Sound assets.
+	 * @param path The file path
+	 * @return A Future that will be completed with the Sound
+	 */
+	private static function createSoundAsyncLoader(path:String):Future<Sound>
+	{
+		var promise = new Promise<Sound>();
+
+		if (path == null)
+		{
+			promise.complete(null);
+			return promise.future;
+		}
+
+		if (soundCache.exists(path))
+		{
+			promise.complete(soundCache.get(path));
+			return promise.future;
+		}
+
+		OpenFLAssets.loadSound(path, false).onComplete(function(sound)
+		{
+			soundCache.set(path, sound);
+			promise.complete(sound);
+		}).onError(function(error)
+		{
+				promise.error(error);
+		});
+
+		return promise.future;
+	}
+
+	/**
+	 * Helper to get cache size generically.
+	 * @param cache The cache map to measure
+	 * @return The number of items in the cache
+	 */
+	private static function getCacheSize<T>(cache:Map<String, T>):Int
+	{
+		var count = 0;
+		for (_ in cache)
+			count++;
+		return count;
+	}
+
+	/**
+	 * Loads the contents of a music metadata JSON file.
+	 * @param dataName The data file name (without extension).
+	 * @param ignoreMod Whether to ignore the mods folder.
+	 * @return The JSON file contents as a string, or null if not found.
+	 */
+	public static function getMusicData(dataName:String, ignoreMod:Bool = false):String
+	{
+		return loadTextContent(FilePath.getMusicDataPath(dataName, ignoreMod));
 	}
 
 	/**
@@ -116,14 +221,7 @@ class Paths
 	 */
 	public static function getSound(soundName:String, ignoreMod:Bool = false):Sound
 	{
-		var path = FilePath.getSoundPath(soundName, ignoreMod);
-		if (path == null)
-			return null;
-
-		if (!soundCache.exists(path))
-			soundCache.set(path, OpenFLAssets.getSound(path, false)); // useCache = false, we handle it
-
-		return soundCache.get(path);
+		return loadSoundAsset(FilePath.getSoundPath(soundName, ignoreMod));
 	}
 
 	/**
@@ -134,14 +232,7 @@ class Paths
 	 */
 	public static function getMusic(musicName:String, ignoreMod:Bool = false):Sound
 	{
-		var path = FilePath.getMusicPath(musicName, ignoreMod);
-		if (path == null)
-			return null;
-
-		if (!soundCache.exists(path))
-			soundCache.set(path, OpenFLAssets.getSound(path, false)); // useCache = false, we handle it
-
-		return soundCache.get(path);
+		return loadSoundAsset(FilePath.getMusicPath(musicName, ignoreMod));
 	}
 	/**
 	 * Loads config file content as a string.
@@ -151,20 +242,7 @@ class Paths
 	 */
 	public static function getConfig(configName:String, ignoreMod:Bool = false):String
 	{
-		var path = FilePath.getConfigPath(configName, ignoreMod);
-		if (path == null)
-			return null;
-
-		if (!textCache.exists(path))
-		{
-			#if (sys && !android && !ios)
-			textCache.set(path, File.getContent(path));
-			#else
-			textCache.set(path, OpenFLAssets.getText(path));
-			#end
-		}
-
-		return textCache.get(path);
+		return loadTextContent(FilePath.getConfigPath(configName, ignoreMod));
 	}
 
 	/**
@@ -175,20 +253,7 @@ class Paths
 	 */
 	public static function getData(dataName:String, ignoreMod:Bool = false):String
 	{
-		var path = FilePath.getDataPath(dataName, ignoreMod);
-		if (path == null)
-			return null;
-
-		if (!textCache.exists(path))
-		{
-			#if (sys && !android && !ios)
-			textCache.set(path, File.getContent(path));
-			#else
-			textCache.set(path, OpenFLAssets.getText(path));
-			#end
-		}
-
-		return textCache.get(path);
+		return loadTextContent(FilePath.getDataPath(dataName, ignoreMod));
 	}
 
 	/**
@@ -199,20 +264,7 @@ class Paths
 	 */
 	public static function getSaves(savesName:String, ignoreMod:Bool = false):String
 	{
-		var path = FilePath.getSavesPath(savesName, ignoreMod);
-		if (path == null)
-			return null;
-
-		if (!textCache.exists(path))
-		{
-			#if (sys && !android && !ios)
-			textCache.set(path, File.getContent(path));
-			#else
-			textCache.set(path, OpenFLAssets.getText(path));
-			#end
-		}
-
-		return textCache.get(path);
+		return loadTextContent(FilePath.getSavesPath(savesName, ignoreMod));
 	}
 
 	/**
@@ -224,20 +276,7 @@ class Paths
 	 */
 	public static function getText(textName:String, type:FilePathType, ignoreMod:Bool = false):String
 	{
-		var path = FilePath.getTextPath(textName, type, ignoreMod);
-		if (path == null)
-			return null;
-
-		if (!textCache.exists(path))
-		{
-			#if (sys && !android && !ios)
-			textCache.set(path, File.getContent(path));
-			#else
-			textCache.set(path, OpenFLAssets.getText(path));
-			#end
-		}
-
-		return textCache.get(path);
+		return loadTextContent(FilePath.getTextPath(textName, type, ignoreMod));
 	}
 
 	/**
@@ -358,31 +397,7 @@ class Paths
 	 */
 	public static function loadSoundAsync(soundName:String, ignoreMod:Bool = false):Future<Sound>
 	{
-		var promise = new Promise<Sound>();
-		var path = FilePath.getSoundPath(soundName, ignoreMod);
-
-		if (path == null)
-		{
-			promise.complete(null);
-			return promise.future;
-		}
-
-		if (soundCache.exists(path))
-		{
-			promise.complete(soundCache.get(path));
-			return promise.future;
-		}
-
-		OpenFLAssets.loadSound(path, false).onComplete(function(sound)
-		{
-			soundCache.set(path, sound);
-			promise.complete(sound);
-		}).onError(function(error)
-		{
-				promise.error(error);
-		});
-
-		return promise.future;
+		return createSoundAsyncLoader(FilePath.getSoundPath(soundName, ignoreMod));
 	}
 
 	/**
@@ -393,24 +408,7 @@ class Paths
 	 */
 	public static function loadMusicDataAsync(dataName:String, ignoreMod:Bool = false):Future<String>
 	{
-		var promise = new Promise<String>();
-		var path = FilePath.getMusicDataPath(dataName, ignoreMod);
-
-		if (path == null)
-		{
-			promise.complete(null);
-			return promise.future;
-		}
-
-		OpenFLAssets.loadText(path).onComplete(function(text)
-		{
-			promise.complete(text);
-		}).onError(function(error)
-		{
-				promise.error(error);
-		});
-
-		return promise.future;
+		return createTextAsyncLoader(FilePath.getMusicDataPath(dataName, ignoreMod));
 	}
 
 	/**
@@ -421,24 +419,7 @@ class Paths
 	 */
 	public static function loadConfigAsync(configName:String, ignoreMod:Bool = false):Future<String>
 	{
-		var promise = new Promise<String>();
-		var path = FilePath.getConfigPath(configName, ignoreMod);
-
-		if (path == null)
-		{
-			promise.complete(null);
-			return promise.future;
-		}
-
-		OpenFLAssets.loadText(path).onComplete(function(text)
-		{
-			promise.complete(text);
-		}).onError(function(error)
-		{
-				promise.error(error);
-		});
-
-		return promise.future;
+		return createTextAsyncLoader(FilePath.getConfigPath(configName, ignoreMod));
 	}
 
 	/**
@@ -449,24 +430,7 @@ class Paths
 	 */
 	public static function loadDataAsync(dataName:String, ignoreMod:Bool = false):Future<String>
 	{
-		var promise = new Promise<String>();
-		var path = FilePath.getDataPath(dataName, ignoreMod);
-
-		if (path == null)
-		{
-			promise.complete(null);
-			return promise.future;
-		}
-
-		OpenFLAssets.loadText(path).onComplete(function(text)
-		{
-			promise.complete(text);
-		}).onError(function(error)
-		{
-				promise.error(error);
-		});
-
-		return promise.future;
+		return createTextAsyncLoader(FilePath.getDataPath(dataName, ignoreMod));
 	}
 
 	/**
@@ -477,31 +441,7 @@ class Paths
 	 */
 	public static function loadMusicAsync(musicName:String, ignoreMod:Bool = false):Future<Sound>
 	{
-		var promise = new Promise<Sound>();
-		var path = FilePath.getMusicPath(musicName, ignoreMod);
-
-		if (path == null)
-		{
-			promise.complete(null);
-			return promise.future;
-		}
-
-		if (soundCache.exists(path))
-		{
-			promise.complete(soundCache.get(path));
-			return promise.future;
-		}
-
-		OpenFLAssets.loadSound(path, false).onComplete(function(sound)
-		{
-			soundCache.set(path, sound);
-			promise.complete(sound);
-		}).onError(function(error)
-		{
-				promise.error(error);
-		});
-
-		return promise.future;
+		return createSoundAsyncLoader(FilePath.getMusicPath(musicName, ignoreMod));
 	}
 
 	/**
@@ -543,10 +483,7 @@ class Paths
 	 */
 	public static function getImageCacheSize():Int
 	{
-		var count = 0;
-		for (_ in imageCache)
-			count++;
-		return count;
+		return getCacheSize(imageCache);
 	}
 
 	/**
@@ -555,10 +492,7 @@ class Paths
 	 */
 	public static function getSoundCacheSize():Int
 	{
-		var count = 0;
-		for (_ in soundCache)
-			count++;
-		return count;
+		return getCacheSize(soundCache);
 	}
 
 	/**
@@ -567,10 +501,7 @@ class Paths
 	 */
 	public static function getTextCacheSize():Int
 	{
-		var count = 0;
-		for (_ in textCache)
-			count++;
-		return count;
+		return getCacheSize(textCache);
 	}
 
 	/**
@@ -637,14 +568,7 @@ class Paths
 	public static function getFont(fontName:String, ignoreMod:Bool = false):String
 	{
 		#if debug trace("Getting font path for: " + fontName); #end
-		var path = FilePath.getFontPath(fontName, ignoreMod);
-		if (path == null)
-			return null;
-
-		if (!textCache.exists(path))
-			textCache.set(path, path); // Store path in cache
-
-		return textCache.get(path);
+		return FilePath.getFontPath(fontName, ignoreMod);
 	}
 
 	/**
@@ -656,14 +580,7 @@ class Paths
 	public static function getShader(shaderName:String, ignoreMod:Bool = false):String
 	{
 		#if debug trace("Getting shader path for: " + shaderName); #end
-		var path = FilePath.getShaderPath(shaderName, ignoreMod);
-		if (path == null)
-			return null;
-
-		if (!textCache.exists(path))
-			textCache.set(path, path); // Store path in cache
-
-		return textCache.get(path);
+		return FilePath.getShaderPath(shaderName, ignoreMod);
 	}
 
 	/**
@@ -676,19 +593,6 @@ class Paths
 	{
 		var promise = new Promise<String>();
 		var path = FilePath.getFontPath(fontName, ignoreMod);
-
-		if (path == null)
-		{
-			promise.complete(null);
-			return promise.future;
-		}
-
-		if (textCache.exists(path))
-		{
-			promise.complete(textCache.get(path));
-			return promise.future;
-		}
-
 		// Font paths are just strings, so we can complete immediately
 		promise.complete(path);
 		return promise.future;
@@ -704,19 +608,6 @@ class Paths
 	{
 		var promise = new Promise<String>();
 		var path = FilePath.getShaderPath(shaderName, ignoreMod);
-
-		if (path == null)
-		{
-			promise.complete(null);
-			return promise.future;
-		}
-
-		if (textCache.exists(path))
-		{
-			promise.complete(textCache.get(path));
-			return promise.future;
-		}
-
 		// Shader paths are just strings, so we can complete immediately
 		promise.complete(path);
 		return promise.future;
