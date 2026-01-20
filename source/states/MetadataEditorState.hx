@@ -233,9 +233,8 @@ class MetadataEditorState extends DefaultState
 		}
 		
 		// Check if any text field is focused to avoid conflicts with keyboard shortcuts
-		var anyFieldFocused = false;
-		// Note: In a production version, you'd track which field has focus
-		// For now, we'll allow shortcuts when fields aren't actively being typed in
+		var anyFieldFocused = titleField.focused || artistField.focused || bpmField.focused 
+			|| offsetField.focused || timeSignatureField.focused;
 		
 		// Keyboard shortcuts (only when not typing in fields)
 		if (!anyFieldFocused)

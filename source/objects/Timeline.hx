@@ -90,10 +90,8 @@ class Timeline extends FlxSpriteGroup
 				var lineColor = (i % 4 == 0) ? FlxColor.fromRGB(80, 80, 80) : FlxColor.fromRGB(50, 50, 50);
 				var lineHeight = (i % 4 == 0) ? Std.int(timelineHeight) : Std.int(timelineHeight * 0.7);
 				
-				for (y in 0...lineHeight)
-				{
-					beatGrid.pixels.setPixel32(Std.int(xPos), y, lineColor);
-				}
+				// Draw vertical line using fillRect for better performance
+				beatGrid.pixels.fillRect(new openfl.geom.Rectangle(Std.int(xPos), 0, 1, lineHeight), lineColor);
 			}
 		}
 		

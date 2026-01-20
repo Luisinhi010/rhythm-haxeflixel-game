@@ -13,6 +13,7 @@ class TextField extends FlxSpriteGroup
 {
 	public var text:String = "";
 	public var onChange:String->Void;
+	public var focused(default, null):Bool = false;
 	
 	private var bg:FlxSprite;
 	private var textDisplay:FlxText;
@@ -125,9 +126,11 @@ class TextField extends FlxSpriteGroup
 	private function getTypedChar():Null<String>
 	{
 		// Check for alphanumeric keys
+		// Note: This implementation currently supports only lowercase letters and basic characters.
+		// For production use, consider implementing Shift key detection for uppercase and symbols.
 		var keys = FlxG.keys.justPressed;
 		
-		// Letters
+		// Letters (lowercase only)
 		if (keys.A) return "a";
 		if (keys.B) return "b";
 		if (keys.C) return "c";
