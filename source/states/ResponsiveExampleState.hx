@@ -1,6 +1,7 @@
 package states;
 
 import backend.LayoutConstants;
+import backend.ResponsiveLayout;
 import core.utils.SpriteUtil;
 import flixel.FlxG;
 import flixel.FlxSprite;
@@ -167,5 +168,45 @@ class ResponsiveExampleState extends ResponsiveState
 		{
 			FlxG.switchState(DebugState.new);
 		}
+	}
+	override private function printStateSpecificInfo():Void
+	{
+		trace("=== Responsive Example State Info ===");
+		trace("Device Type: " + getDeviceType());
+		trace("Orientation: " + (isPortrait() ? "Portrait" : "Landscape"));
+		trace("---");
+		trace("Layout Info:");
+		trace("  Content Width: " + Std.int(getContentWidth()));
+		trace("  Content Height: " + Std.int(getContentHeight()));
+		trace("  Padding: " + padding);
+		trace("  Margin: " + margin);
+		trace("  Column Gap: " + columnGap);
+		trace("  Row Gap: " + rowGap);
+		trace("---");
+		trace("Responsive Scale:");
+		trace("  Font Scale: " + getResponsiveFontSize(16) + " (base: 16)");
+		trace("  Spacing Scale: " + getResponsiveSpacing(20) + " (base: 20)");
+		trace("  Overall Scale: " + getResponsiveScale());
+		trace("---");
+		trace("Grid System:");
+		trace("  Grid Columns: " + ResponsiveLayout.GRID_COLUMNS);
+		trace("  Single Column Width: " + Std.int(getGridWidth(1)));
+		trace("  Half Width (6 cols): " + Std.int(getGridWidth(6)));
+		trace("  Full Width (12 cols): " + Std.int(getGridWidth(12)));
+		trace("---");
+		trace("Elements:");
+		trace("  Color Boxes: " + boxes.length);
+		trace("  Background Layers: " + background.getLayerCount());
+		trace("---");
+		trace("Scroll Info:");
+		trace("  Max Scroll: " + Std.int(scroll.maxScrollY));
+		trace("  Current Scroll: " + Std.int(scroll.scrollY));
+		trace("  Scrollable: " + scroll.isScrollable());
+		trace("---");
+		trace("Controls:");
+		trace("  SPACE: Open SubState example");
+		trace("  ESC: Return to Debug State");
+		trace("  F5: Reload state");
+		trace("  F6: Toggle debug info");
 	}
 }

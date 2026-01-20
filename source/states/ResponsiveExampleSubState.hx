@@ -98,4 +98,18 @@ class ResponsiveExampleSubState extends ResponsiveSubState
 			close();
 		}
 	}
+	override private function printSubStateSpecificInfo():Void
+	{
+		trace("=== Responsive Example SubState Info ===");
+		trace("Modal Width: " + Std.int(modalBox.width));
+		trace("Modal Height: " + Std.int(modalBox.height));
+		trace("Device Type: " + getDeviceType());
+		trace("Orientation: " + (isPortrait() ? "Portrait" : "Landscape"));
+		trace("Content Size: " + Std.int(getContentWidth()) + "x" + Std.int(getContentHeight()));
+		trace("Background Layers: " + background.getLayerCount());
+		trace("---");
+		trace("Controls:");
+		trace("  SPACE/ESC: Close modal");
+		trace("  F6: Show debug info");
+	}
 }

@@ -134,4 +134,24 @@ class BackgroundExampleState extends ResponsiveState
 			updateInfo();
 		}
 	}
+	override private function printStateSpecificInfo():Void
+	{
+		trace("=== Background Example State Info ===");
+		trace("Current Mode: " + currentMode + " (" + (switch (currentMode)
+		{
+			case 0: "Solid Color";
+			case 1: "Vertical Gradient";
+			case 2: "Horizontal Gradient";
+			case 3: "Parallax Layers";
+			case 4: "Animated Gradient";
+			default: "Unknown";
+		}) + ")");
+		trace("Background Layers: " + background.getLayerCount());
+		trace("Auto Resize: enabled");
+		trace("---");
+		trace("Controls:");
+		trace("  1-5: Switch background modes");
+		trace("  ESC: Return to Debug State");
+		trace("  F5: Reload state");
+	}
 }

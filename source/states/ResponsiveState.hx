@@ -113,48 +113,105 @@ class ResponsiveState extends DefaultState
 	private function get_scrollY():Float return scroll.scrollY;
 	
 	// Layout delegates
-	public function getDeviceType():DeviceType return layout.getDeviceType();
-	public function isMobile():Bool return layout.isMobile();
-	public function isTablet():Bool return layout.isTablet();
-	public function isDesktop():Bool return layout.isDesktop();
-	public function isPortrait():Bool return layout.isPortrait();
-	public function isLandscape():Bool return layout.isLandscape();
+	public inline function getDeviceType():DeviceType
+		return layout.getDeviceType();
+
+	public inline function isMobile():Bool
+		return layout.isMobile();
+
+	public inline function isTablet():Bool
+		return layout.isTablet();
+
+	public inline function isDesktop():Bool
+		return layout.isDesktop();
+
+	public inline function isPortrait():Bool
+		return layout.isPortrait();
+
+	public inline function isLandscape():Bool
+		return layout.isLandscape();
+
+	public inline function getColumnWidth(columns:Int):Float
+		return layout.getColumnWidth(columns);
+
+	public inline function getColumnX(columns:Int, index:Int):Float
+		return layout.getColumnX(columns, index);
+
+	public inline function getRowY(rowIndex:Int, rowHeight:Float):Float
+		return layout.getRowY(rowIndex, rowHeight);
+
+	public inline function getGridWidth(span:Int):Float
+		return layout.getGridWidth(span);
+
+	public inline function getGridX(column:Int):Float
+		return layout.getGridX(column);
+
+	public inline function getCenterX(elementWidth:Float):Float
+		return layout.getCenterX(elementWidth);
+
+	public inline function getCenterY(elementHeight:Float):Float
+		return layout.getCenterY(elementHeight);
+
+	public inline function getResponsiveFontSize(baseSize:Int):Int
+		return layout.getResponsiveFontSize(baseSize);
+
+	public inline function getResponsiveSpacing(baseSpacing:Float):Float
+		return layout.getResponsiveSpacing(baseSpacing);
+
+	public inline function getResponsiveScale():Float
+		return layout.getResponsiveScale();
+
+	public inline function getContentWidth():Float
+		return layout.getContentWidth();
+
+	public inline function getContentHeight():Float
+		return layout.getContentHeight();
+
+	public inline function getSafeContentWidth():Float
+		return layout.getSafeContentWidth();
+
+	public inline function getSafeContentHeight():Float
+		return layout.getSafeContentHeight();
+
+	public inline function getContentX():Float
+		return layout.getContentX();
+
+	public inline function getContentY():Float
+		return layout.getContentY();
+
+	public inline function getSafeContentX():Float
+		return layout.getSafeContentX();
+
+	public inline function getSafeContentY():Float
+		return layout.getSafeContentY();
+
+	public inline function maintainAspectRatio(targetWidth:Float, targetHeight:Float, maxWidth:Float, maxHeight:Float)
+		return layout.maintainAspectRatio(targetWidth, targetHeight, maxWidth, maxHeight);
+
+	public inline function clampWidth(width:Float, ?min:Float, ?max:Float):Float
+		return layout.clampWidth(width, min, max);
+
+	public inline function clampHeight(height:Float, ?min:Float, ?max:Float):Float
+		return layout.clampHeight(height, min, max);
 	
-	public function getColumnWidth(columns:Int):Float return layout.getColumnWidth(columns);
-	public function getColumnX(columns:Int, index:Int):Float return layout.getColumnX(columns, index);
-	public function getRowY(rowIndex:Int, rowHeight:Float):Float return layout.getRowY(rowIndex, rowHeight);
-	
-	public function getGridWidth(span:Int):Float return layout.getGridWidth(span);
-	public function getGridX(column:Int):Float return layout.getGridX(column);
-	
-	public function getCenterX(elementWidth:Float):Float return layout.getCenterX(elementWidth);
-	public function getCenterY(elementHeight:Float):Float return layout.getCenterY(elementHeight);
-	
-	public function getResponsiveFontSize(baseSize:Int):Int return layout.getResponsiveFontSize(baseSize);
-	public function getResponsiveSpacing(baseSpacing:Float):Float return layout.getResponsiveSpacing(baseSpacing);
-	public function getResponsiveScale():Float return layout.getResponsiveScale();
-	
-	public function getContentWidth():Float return layout.getContentWidth();
-	public function getContentHeight():Float return layout.getContentHeight();
-	public function getSafeContentWidth():Float return layout.getSafeContentWidth();
-	public function getSafeContentHeight():Float return layout.getSafeContentHeight();
-	
-	public function getContentX():Float return layout.getContentX();
-	public function getContentY():Float return layout.getContentY();
-	public function getSafeContentX():Float return layout.getSafeContentX();
-	public function getSafeContentY():Float return layout.getSafeContentY();
-	
-	public function maintainAspectRatio(targetWidth:Float, targetHeight:Float, maxWidth:Float, maxHeight:Float) return layout.maintainAspectRatio(targetWidth, targetHeight, maxWidth, maxHeight);
-	public function clampWidth(width:Float, ?min:Float, ?max:Float):Float return layout.clampWidth(width, min, max);
-	public function clampHeight(height:Float, ?min:Float, ?max:Float):Float return layout.clampHeight(height, min, max);
-	
-	// Scroll delegates
-	public function setMaxScroll(contentHeight:Float):Void scroll.setMaxScroll(contentHeight);
-	public function resetScroll():Void scroll.resetScroll();
-	public function scrollTo(position:Float, animated:Bool = true, ?onComplete:Void->Void):Void scroll.scrollTo(position, animated, onComplete);
-	public function scrollToElement(elementY:Float, elementHeight:Float, ?margin:Float = 20):Void scroll.scrollToElement(elementY, elementHeight, margin);
-	public function isElementVisible(elementY:Float, elementHeight:Float):Bool return scroll.isElementVisible(elementY, elementHeight);
-	public function getElementVisibility(elementY:Float, elementHeight:Float):Float return scroll.getElementVisibility(elementY, elementHeight);
+	// Scroll delegates - inline for zero runtime overhead
+	public inline function setMaxScroll(contentHeight:Float):Void
+		scroll.setMaxScroll(contentHeight);
+
+	public inline function resetScroll():Void
+		scroll.resetScroll();
+
+	public inline function scrollTo(position:Float, animated:Bool = true, ?onComplete:Void->Void):Void
+		scroll.scrollTo(position, animated, onComplete);
+
+	public inline function scrollToElement(elementY:Float, elementHeight:Float, ?margin:Float = 20):Void
+		scroll.scrollToElement(elementY, elementHeight, margin);
+
+	public inline function isElementVisible(elementY:Float, elementHeight:Float):Bool
+		return scroll.isElementVisible(elementY, elementHeight);
+
+	public inline function getElementVisibility(elementY:Float, elementHeight:Float):Float
+		return scroll.getElementVisibility(elementY, elementHeight);
 	
 	// Background convenience methods
 	
@@ -163,7 +220,7 @@ class ResponsiveState extends DefaultState
 	 * @param color Background color
 	 * @param alpha Transparency (0-1)
 	 */
-	public function setBackgroundColor(color:FlxColor = FlxColor.WHITE, alpha:Float = 1.0):FlxSprite
+	public inline function setBackgroundColor(color:FlxColor = FlxColor.WHITE, alpha:Float = 1.0):FlxSprite
 	{
 		return background.createSolid(color, alpha);
 	}
@@ -174,7 +231,7 @@ class ResponsiveState extends DefaultState
 	 * @param bottomColor Bottom color
 	 * @param alpha Transparency (0-1)
 	 */
-	public function setBackgroundGradient(topColor:FlxColor, bottomColor:FlxColor, alpha:Float = 1.0):FlxSprite
+	public inline function setBackgroundGradient(topColor:FlxColor, bottomColor:FlxColor, alpha:Float = 1.0):FlxSprite
 	{
 		return background.createVerticalGradient(topColor, bottomColor, alpha);
 	}
@@ -185,7 +242,7 @@ class ResponsiveState extends DefaultState
 	 * @param rightColor Right color
 	 * @param alpha Transparency (0-1)
 	 */
-	public function setBackgroundHorizontalGradient(leftColor:FlxColor, rightColor:FlxColor, alpha:Float = 1.0):FlxSprite
+	public inline function setBackgroundHorizontalGradient(leftColor:FlxColor, rightColor:FlxColor, alpha:Float = 1.0):FlxSprite
 	{
 		return background.createHorizontalGradient(leftColor, rightColor, alpha);
 	}
@@ -196,7 +253,7 @@ class ResponsiveState extends DefaultState
 	 * @param scaleMode How to scale the image (FIT, FILL, STRETCH, NONE)
 	 * @param alpha Transparency (0-1)
 	 */
-	public function setBackgroundImage(imagePath:String, scaleMode:ScaleMode = FIT, alpha:Float = 1.0):FlxSprite
+	public inline function setBackgroundImage(imagePath:String, scaleMode:ScaleMode = FIT, alpha:Float = 1.0):FlxSprite
 	{
 		return background.createImage(imagePath, scaleMode, alpha);
 	}
@@ -208,7 +265,7 @@ class ResponsiveState extends DefaultState
 	 * @param scaleMode How to scale the image
 	 * @param alpha Transparency
 	 */
-	public function addBackgroundLayer(imagePath:String, scrollFactor:Float = 0.5, scaleMode:ScaleMode = FIT, alpha:Float = 1.0):FlxSprite
+	public inline function addBackgroundLayer(imagePath:String, scrollFactor:Float = 0.5, scaleMode:ScaleMode = FIT, alpha:Float = 1.0):FlxSprite
 	{
 		return background.addParallaxLayer(imagePath, scrollFactor, scaleMode, alpha);
 	}

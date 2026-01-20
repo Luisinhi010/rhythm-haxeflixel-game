@@ -476,11 +476,19 @@ class ResponsiveBackground extends FlxTypedGroup<FlxSprite>
 			return;
 		}
 
-		// Fallback: Use FlxGradient bitmap (slower, uses more memory)
+		// Fallback: Use FlxGradient bitmap (slower)
 		#if debug
 		trace("[ResponsiveBackground] Shader gradient failed, using FlxGradient fallback");
 		#end
+		useFlxGradientFallback(sprite, color1, color2, vertical, width, height);
+	}
 
+	/**
+	 * Helper method to apply FlxGradient bitmap fallback.
+	 * Extracted for reusability and to avoid code duplication.
+	 */
+	private function useFlxGradientFallback(sprite:FlxSprite, color1:FlxColor, color2:FlxColor, vertical:Bool, width:Int, height:Int):Void
+	{
 		var tempSprite:FlxSprite;
 		if (vertical)
 		{
@@ -536,20 +544,28 @@ class ResponsiveBackground extends FlxTypedGroup<FlxSprite>
 		}
 	}
 	
-	private function addLayer(sprite:FlxSprite, name:String, scrollX:Float, scrollY:Float, ?scaleMode:ScaleMode, ?type:BackgroundType, ?gradientVertical:Bool,
-			?color1:FlxColor, ?color2:FlxColor):Void
+	private function addLayer(sprite:FlxSprite, name:String, scrollFactorX:Float, scrollFactorY:Float, ?scaleMode:ScaleMode, type:BackgroundType,
+			?gradientVertical:Bool, ?gradientColor1:FlxColor, ?gradientColor2:FlxColor):Void
 	{
-		sprite.scrollFactor.set(scrollX, scrollY);
+		if (sprite == null)
+		{
+			#if debug
+			trace("[ResponsiveBackground] Attempted to add null sprite layer: " + name);
+			#end
+			return;
+		}
+
+		sprite.scrollFactor.set(scrollFactorX, scrollFactorY);
 
 		var layer:BackgroundLayer = {
 			sprite: sprite,
 			name: name,
-			scrollFactor: FlxPoint.get(scrollX, scrollY),
+			scrollFactor: FlxPoint.get(scrollFactorX, scrollFactorY),
 			scaleMode: scaleMode,
-			type: type != null ? type : SOLID,
+			type: type,
 			gradientVertical: gradientVertical,
-			gradientColor1: color1,
-			gradientColor2: color2
+			gradientColor1: gradientColor1,
+			gradientColor2: gradientColor2
 		};
 
 		layers.push(layer);
@@ -558,8 +574,11 @@ class ResponsiveBackground extends FlxTypedGroup<FlxSprite>
 	
 	override public function destroy():Void
 	{
-		clear();
-		layers = null;
+		if (layers != null)
+		{
+			clear();
+			layers = null;
+		}
 		super.destroy();
 	}
 }
