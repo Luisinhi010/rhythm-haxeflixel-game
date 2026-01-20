@@ -13,7 +13,9 @@ This is a rhythm game built with Haxe, OpenFL, and HaxeFlixel. The game is a Gui
 
 ### Haxe Language Guidelines
 - Use tabs for indentation (following HaxeFlixel conventions)
-- Place opening braces on the same line for object literals, on a new line for functions and classes
+- Place opening braces based on context (following `hxformat.json`):
+  - Use "both" (before and after) for general cases (functions, classes, etc.)
+  - Use "after" for object literals only
 - Use `if-else` with the `else` on the next line
 - Follow the style defined in `hxformat.json`
 - Use type annotations for all function parameters and return types
@@ -98,9 +100,9 @@ This is a rhythm game built with Haxe, OpenFL, and HaxeFlixel. The game is a Gui
 - Use FlxTimer for timed events
 
 ### Input Handling
-- Use `InputManager` from `backend/InputManager.hx` for input
-- Never directly access `FlxG.keys` in game logic - use InputManager
-- Support multiple platforms (keyboard, touch, gamepad when needed)
+- Use `InputManager` from `backend/InputManager.hx` for game-specific input handling
+- Direct `FlxG.keys` access is acceptable for debug/utility features (e.g., F5 to reload state in DefaultState)
+- For gameplay input, prefer InputManager for consistency and multi-platform support
 
 ## Platform-Specific Code
 - Use conditional compilation for platform-specific code:
@@ -144,7 +146,7 @@ This is a rhythm game built with Haxe, OpenFL, and HaxeFlixel. The game is a Gui
 - The build output goes to `export/debug/` or `export/release/` based on the build type
 
 ## Common Utilities
-- Use `source/Util.hx` for common utility functions
+- Use `Util.hx` (in source root) for common utility functions
 - Use `FlxStringUtil` for string formatting
 - Use `FlxColor` for color management (provides color constants and utilities)
 
