@@ -1,5 +1,8 @@
 package objects;
 
+import backend.FilePath.FilePathExtension;
+import backend.FilePath.FilePathType;
+import backend.FilePath;
 import backend.FlxGroupContainer;
 import backend.Paths;
 import core.utils.ArrayUtil;
@@ -14,6 +17,8 @@ import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
 import flixel.util.FlxSpriteUtil;
 
+using StringTools;
+
 /**
  * Visual tester for utility functions (MathUtil, StringUtil, ArrayUtil).
  * Shows animated demonstrations of each function.
@@ -21,8 +26,8 @@ import flixel.util.FlxSpriteUtil;
 class UtilTester extends FlxGroupContainer
 {
 	// Section management
-	private var currentSection:Int = 0; // 0=Math, 1=String, 2=Array
-	private var sectionNames:Array<String> = ["MathUtil", "StringUtil", "ArrayUtil"];
+	private var currentSection:Int = 0; // 0=Math, 1=String, 2=Array, 3=FileSystem
+	private var sectionNames:Array<String> = ["MathUtil", "StringUtil", "ArrayUtil", "FileSystem"];
 	
 	// Visual components
 	private var background:FlxSprite;
@@ -33,6 +38,7 @@ class UtilTester extends FlxGroupContainer
 	private var mathSection:FlxTypedGroup<FlxSprite>;
 	private var stringSection:FlxTypedGroup<FlxSprite>;
 	private var arraySection:FlxTypedGroup<FlxSprite>;
+	private var fileSystemSection:FlxTypedGroup<FlxSprite>;
 	
 	// MathUtil test objects
 	private var lerpSprite:FlxSprite;
@@ -70,12 +76,85 @@ class UtilTester extends FlxGroupContainer
 	// MathUtil rotation text reference
 	private var rotationText:FlxText;
 	
+	// FileSystem test objects
+	private var fileStatusText:FlxText;
+	private var pathInfoText:FlxText;
+	
 	// Layout system
 	private var contentHeight:Float = 0; // Available height for content
 	private var contentY:Float = 70; // Starting Y position after header
 	private var padding:Float = 10; // Spacing between elements
 	private var sectionPadding:Float = 20; // Spacing between major sections
 	
+	/**
+	 * Helper to create a section label with consistent formatting.
+	 * @param x X position
+	 * @param y Y position
+	 * @param width Label width
+	 * @param text Label text
+	 * @param section Which section to add to
+	 * @return The created FlxText
+	 */
+	private function createSectionLabel(x:Float, y:Float, width:Float, text:String, section:FlxTypedGroup<FlxSprite>):FlxText
+	{
+		var label = new FlxText(x, y, width, text);
+		label.setFormat(null, 14, FlxColor.CYAN, LEFT);
+		section.add(label);
+		return label;
+	}
+
+	/**
+	 * Helper to set visibility and active state of a section.
+	 * @param section The section group
+	 * @param state Whether to show/activate or hide/deactivate
+	 */
+	private function setSectionVisibility(section:FlxTypedGroup<FlxSprite>, state:Bool):Void
+	{
+		section.visible = state;
+		section.active = state;
+	}
+
+	/**
+	 * Check if any section is currently active.
+	 * @return True if at least one section is active
+	 */
+	private function isAnySectionActive():Bool
+	{
+		return mathSection.active || stringSection.active || arraySection.active || fileSystemSection.active;
+	}
+
+	/**
+	 * Helper to list files in a directory with a specific extension.
+	 * @param dirPath The directory path
+	 * @param extension The file extension to filter (e.g., ".ogg")
+	 * @param status Array to append status messages to
+	 */
+	private function listDirectoryFiles(dirPath:String, extension:String, status:Array<String>):Void
+	{
+		#if (sys && !android && !ios)
+		if (sys.FileSystem.exists(dirPath) && sys.FileSystem.isDirectory(dirPath))
+		{
+			var files = sys.FileSystem.readDirectory(dirPath);
+			var filteredFiles = files.filter(f -> f.toLowerCase().endsWith(extension));
+			if (!ArrayUtil.isEmpty(filteredFiles))
+			{
+				for (file in filteredFiles)
+					status.push('  ✓ ${file}');
+			}
+			else
+			{
+				status.push('  (No ${extension} files found)');
+			}
+		}
+		else
+		{
+			status.push('  ✗ Directory not found: ${dirPath}');
+		}
+		#else
+		status.push('  (File listing not available on this platform)');
+		#end
+	}
+
 	public function new()
 	{
 		super();
@@ -95,7 +174,7 @@ class UtilTester extends FlxGroupContainer
 		
 		// Create instructions
 		instructionText = new FlxText(10, 40, FlxG.width - 20, 
-			"[1][2][3] Switch Section | [SPACE] Execute | [T] Toggle Tester");
+		"[1][2][3][4][5] Switch Section | [SPACE] Execute | [T] Toggle Tester");
 		instructionText.setFormat(null, 12, FlxColor.GRAY, LEFT);
 		add(instructionText);
 		
@@ -103,15 +182,18 @@ class UtilTester extends FlxGroupContainer
 		mathSection = new FlxTypedGroup<FlxSprite>();
 		stringSection = new FlxTypedGroup<FlxSprite>();
 		arraySection = new FlxTypedGroup<FlxSprite>();
+		fileSystemSection = new FlxTypedGroup<FlxSprite>();
 		
 		add(mathSection);
 		add(stringSection);
 		add(arraySection);
+		add(fileSystemSection);
 		
 		// Setup each section
 		setupMathSection();
 		setupStringSection();
 		setupArraySection();
+		setupFileSystemSection();
 		
 		// Show initial section
 		switchSection(0);
@@ -126,9 +208,7 @@ class UtilTester extends FlxGroupContainer
 		
 		// LEFT COLUMN
 		// Lerp demonstration
-		var lerpLabel = new FlxText(col1X, yOffset, colWidth, "lerp(a, b, t):");
-		lerpLabel.setFormat(null, 14, FlxColor.CYAN, LEFT);
-		mathSection.add(lerpLabel);
+		createSectionLabel(col1X, yOffset, colWidth, "lerp(a, b, t):", mathSection);
 		
 		lerpStartX = col1X + 50;
 		lerpEndX = col1X + colWidth - 70;
@@ -149,9 +229,7 @@ class UtilTester extends FlxGroupContainer
 		yOffset += 60;
 		
 		// Clamp demonstration
-		var clampLabel = new FlxText(col1X, yOffset, colWidth, "clamp(value, min, max):");
-		clampLabel.setFormat(null, 14, FlxColor.CYAN, LEFT);
-		mathSection.add(clampLabel);
+		createSectionLabel(col1X, yOffset, colWidth, "clamp(value, min, max):", mathSection);
 		
 		var clampWidth = Std.int(colWidth - 50);
 		clampArea = new FlxSprite(col1X, yOffset + 25);
@@ -165,9 +243,7 @@ class UtilTester extends FlxGroupContainer
 		yOffset += 70;
 		
 		// MapRange demonstration
-		var mapLabel = new FlxText(col1X, yOffset, colWidth, "mapRange(0-100 → RGB):");
-		mapLabel.setFormat(null, 14, FlxColor.CYAN, LEFT);
-		mathSection.add(mapLabel);
+		createSectionLabel(col1X, yOffset, colWidth, "mapRange(0-100 → RGB):", mathSection);
 		
 		mapRangeBar = new FlxSprite(col1X, yOffset + 25);
 		mapRangeBar.makeGraphic(Std.int(colWidth - 10), 30, FlxColor.RED);
@@ -177,9 +253,7 @@ class UtilTester extends FlxGroupContainer
 		yOffset = contentY;
 		
 		// Rotation demonstration
-		var rotLabel = new FlxText(col2X, yOffset, colWidth, "degToRad/radToDeg:");
-		rotLabel.setFormat(null, 14, FlxColor.CYAN, LEFT);
-		mathSection.add(rotLabel);
+		createSectionLabel(col2X, yOffset, colWidth, "degToRad/radToDeg:", mathSection);
 		
 		rotationSprite = new FlxSprite(col2X + 100, yOffset + 40);
 		rotationSprite.makeGraphic(40, 4, FlxColor.MAGENTA);
@@ -193,9 +267,7 @@ class UtilTester extends FlxGroupContainer
 		yOffset += 90;
 		
 		// Random particles demonstration
-		var randomLabel = new FlxText(col2X, yOffset, colWidth, "randomRange/randomInt:\n[SPACE] Spawn particles");
-		randomLabel.setFormat(null, 14, FlxColor.CYAN, LEFT);
-		mathSection.add(randomLabel);
+		createSectionLabel(col2X, yOffset, colWidth, "randomRange/randomInt:\n[SPACE] Spawn particles", mathSection);
 		
 		for (i in 0...10)
 		{
@@ -216,9 +288,7 @@ class UtilTester extends FlxGroupContainer
 		
 		// LEFT COLUMN
 		// FormatTime demonstration
-		var timeLabel = new FlxText(col1X, yOffset, colWidth, "formatTime(seconds):");
-		timeLabel.setFormat(null, 14, FlxColor.CYAN, LEFT);
-		stringSection.add(timeLabel);
+		createSectionLabel(col1X, yOffset, colWidth, "formatTime(seconds):", stringSection);
 		
 		timeText = new FlxText(col1X, yOffset + 25, colWidth, "00:00");
 		timeText.setFormat(null, 32, FlxColor.GREEN, LEFT);
@@ -227,9 +297,7 @@ class UtilTester extends FlxGroupContainer
 		yOffset += 80;
 		
 		// Capitalization demonstration
-		var capLabel = new FlxText(col1X, yOffset, colWidth, "capitalization(str):");
-		capLabel.setFormat(null, 14, FlxColor.CYAN, LEFT);
-		stringSection.add(capLabel);
+		createSectionLabel(col1X, yOffset, colWidth, "capitalization(str):", stringSection);
 		
 		capitalText = new FlxText(col1X, yOffset + 25, colWidth, "");
 		capitalText.setFormat(null, 16, FlxColor.WHITE, LEFT);
@@ -247,9 +315,7 @@ class UtilTester extends FlxGroupContainer
 		yOffset = contentY;
 		
 		// Padding demonstration
-		var padLabel = new FlxText(col2X, yOffset, colWidth, "padLeft/padRight:");
-		padLabel.setFormat(null, 14, FlxColor.CYAN, LEFT);
-		stringSection.add(padLabel);
+		createSectionLabel(col2X, yOffset, colWidth, "padLeft/padRight:", stringSection);
 		
 		paddingText = new FlxText(col2X, yOffset + 25, colWidth, "");
 		paddingText.setFormat(null, 14, FlxColor.ORANGE, LEFT);
@@ -272,9 +338,7 @@ class UtilTester extends FlxGroupContainer
 		
 		// LEFT COLUMN
 		// Array shuffle demonstration
-		var shuffleLabel = new FlxText(col1X, yOffset, colWidth, "shuffle(array)\n[SPACE] to shuffle:");
-		shuffleLabel.setFormat(null, 14, FlxColor.CYAN, LEFT);
-		arraySection.add(shuffleLabel);
+		createSectionLabel(col1X, yOffset, colWidth, "shuffle(array)\n[SPACE] to shuffle:", arraySection);
 		
 		yOffset += 45;
 		
@@ -300,9 +364,7 @@ class UtilTester extends FlxGroupContainer
 		yOffset += elementSize + 20;
 		
 		// First/Last demonstration
-		var firstLastLabel = new FlxText(col1X, yOffset, colWidth, "first() / last():");
-		firstLastLabel.setFormat(null, 14, FlxColor.CYAN, LEFT);
-		arraySection.add(firstLastLabel);
+		createSectionLabel(col1X, yOffset, colWidth, "first() / last():", arraySection);
 		
 		yOffset += 25;
 		
@@ -318,9 +380,7 @@ class UtilTester extends FlxGroupContainer
 		yOffset = contentY;
 		
 		// PickRandom demonstration
-		var pickLabel = new FlxText(col2X, yOffset, colWidth, "pickRandom(array)\nRandom highlighted:");
-		pickLabel.setFormat(null, 14, FlxColor.CYAN, LEFT);
-		arraySection.add(pickLabel);
+		createSectionLabel(col2X, yOffset, colWidth, "pickRandom(array)\nRandom highlighted:", arraySection);
 		
 		yOffset += 45;
 		
@@ -337,6 +397,77 @@ class UtilTester extends FlxGroupContainer
 		}
 	}
 
+	private function setupFileSystemSection():Void
+	{
+		var yOffset:Float = contentY;
+		var col1X:Float = 20;
+		var col2X:Float = FlxG.width / 2 + 10;
+		var colWidth:Float = FlxG.width / 2 - 30;
+
+		// LEFT COLUMN
+		// FilePath tests
+		createSectionLabel(col1X, yOffset, colWidth, "FilePath.hx - Path Resolution:", fileSystemSection);
+
+		yOffset += 25;
+
+		pathInfoText = new FlxText(col1X, yOffset, colWidth, "");
+		pathInfoText.setFormat(null, 11, FlxColor.WHITE, LEFT);
+		fileSystemSection.add(pathInfoText);
+
+		// Build path info display
+		var pathInfo = [];
+		pathInfo.push("Base: " + FilePath.get());
+		pathInfo.push("Mod: " + FilePath.getMod());
+		pathInfo.push("Music: " + FilePath.getPath(MUSIC));
+		pathInfo.push("Images: " + FilePath.getPath(IMAGES));
+		pathInfo.push("Sounds: " + FilePath.getPath(SOUNDS));
+		pathInfo.push("Data: " + FilePath.getPath(DATA));
+
+		pathInfoText.text = pathInfo.join("\n");
+
+		// RIGHT COLUMN
+		yOffset = contentY;
+
+		// Paths.hx tests
+		createSectionLabel(col2X, yOffset, colWidth, "Paths.hx - File Checking:\n[SPACE] Refresh", fileSystemSection);
+
+		yOffset += 45;
+
+		fileStatusText = new FlxText(col2X, yOffset, colWidth, "");
+		fileStatusText.setFormat(null, 11, FlxColor.LIME, LEFT);
+		fileSystemSection.add(fileStatusText);
+
+		// Check for test files
+		updateFileStatus();
+	}
+
+	private function updateFileStatus():Void
+	{
+		if (fileStatusText == null)
+			return;
+
+		var status = [];
+		status.push("[SPACE] to refresh file checks\n");
+
+		// List actual music files
+		status.push("Music Files (.ogg):");
+		var musicPath = "assets/" + FilePath.getPath(MUSIC);
+		listDirectoryFiles(musicPath, ".ogg", status);
+
+		// List actual metadata files
+		status.push("\nMusic Metadata (.json):");
+		var metadataPath = "assets/" + FilePath.getPath(METADATA);
+		listDirectoryFiles(metadataPath, ".json", status);
+
+		// List actual sound files
+		status.push("\nSound Files (.ogg):");
+		var soundsPath = "assets/" + FilePath.getPath(SOUNDS);
+		listDirectoryFiles(soundsPath, ".ogg", status);
+
+		fileStatusText.text = status.join("\n");
+	}
+
+	
 	public function switchSection(section:Int):Void
 	{
 		if (section < 0 || section >= sectionNames.length)
@@ -346,25 +477,22 @@ class UtilTester extends FlxGroupContainer
 		titleText.text = "Testing: " + sectionNames[currentSection];
 		
 		// Pause all sections (hide and stop updating)
-		mathSection.visible = false;
-		mathSection.active = false;
-		stringSection.visible = false;
-		stringSection.active = false;
-		arraySection.visible = false;
-		arraySection.active = false;
+		setSectionVisibility(mathSection, false);
+		setSectionVisibility(stringSection, false);
+		setSectionVisibility(arraySection, false);
+		setSectionVisibility(fileSystemSection, false);
 		
 		// Activate current section
 		switch (currentSection)
 		{
 			case 0:
-				mathSection.visible = true;
-				mathSection.active = true;
+				setSectionVisibility(mathSection, true);
 			case 1:
-				stringSection.visible = true;
-				stringSection.active = true;
+				setSectionVisibility(stringSection, true);
 			case 2:
-				arraySection.visible = true;
-				arraySection.active = true;
+				setSectionVisibility(arraySection, true);
+			case 3:
+				setSectionVisibility(fileSystemSection, true);
 		}
 	}
 	
@@ -422,6 +550,9 @@ class UtilTester extends FlxGroupContainer
 					clampedBrightness * 100 / 255, clampedBrightness * 150 / 255, clampedBrightness * 200 / 255
 					);
 				}
+			case 3: // FileSystem - Refresh file status
+				updateFileStatus();
+
 		}
 	}
 	
@@ -430,10 +561,10 @@ class UtilTester extends FlxGroupContainer
 		super.update(elapsed);
 		
 		// Update only active section
-		if (!mathSection.active && !stringSection.active && !arraySection.active)
+		if (!isAnySectionActive())
 			return;
-		
-		// Update timer unconditionally for all sections
+
+
 		timeCounter += elapsed;
 		
 		// MathUtil updates
@@ -497,6 +628,11 @@ class UtilTester extends FlxGroupContainer
 				var pulse = 1.0 + Math.sin(timeCounter * 5) * 0.2;
 				arrayElements[selectedIndex].scale.set(pulse, pulse);
 			}
+		}
+		// FileSystem updates (static, no animation needed)
+		if (fileSystemSection.active)
+		{
+			// Nothing to update in real-time
 		}
 	}
 }

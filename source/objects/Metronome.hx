@@ -20,6 +20,12 @@ class Metronome
 	public function new() 
 	{
 		sound = Paths.getSound(soundName);
+		if (sound == null)
+		{
+			#if debug
+			trace('Warning: Metronome sound "$soundName" not found');
+			#end
+		}
 	}
 
 	/**
@@ -28,6 +34,11 @@ class Metronome
 	 */
 	public function click(beat:Int = 0):Void
 	{
-		FlxG.sound.play(sound).pitch = (beat % accentInterval == 0) ? accentPitch : defaultPitch;
+		if (sound == null)
+			return;
+
+		var playedSound = FlxG.sound.play(sound);
+		if (playedSound != null)
+			playedSound.pitch = (beat % accentInterval == 0) ? accentPitch : defaultPitch;
 	}
 }

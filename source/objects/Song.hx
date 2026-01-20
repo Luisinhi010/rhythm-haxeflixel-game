@@ -29,8 +29,56 @@ class Song
 		this.name = fileName;
 		load();
 		// If looped parameter is provided, it overrides the metadata setting
-		var shouldLoop = (looped == null ? (metaData != null && metaData.looped) : looped);
-		music = FlxG.sound.load(Paths.getMusic(name), 1, shouldLoop);
+		var shouldLoop = looped != null ? looped : (metaData != null && metaData.looped);
+
+		var musicPath = Paths.getMusic(name);
+		if (musicPath == null)
+		{
+			#if debug
+			trace('Music file not found for "$name"');
+			#end
+			return;
+		}
+		music = FlxG.sound.load(musicPath, 1, shouldLoop);
+	}
+
+	private function getDefaultMetadata():MusicMetaData
+	{
+		return {
+			title: name,
+			artist: "Unknown",
+			bpm: 120,
+			offset: 0,
+			timeSignature: "4/4",
+			cuePoints: new Map<String, Float>(),
+			tempoChanges: [],
+			looped: false
+		};
+	}
+
+	/**
+	 * Helper to handle loading errors and fall back to defaults.
+	 * @param reason The reason for the fallback
+	 */
+	private function fallbackToDefaults(reason:String):Void
+	{
+		#if debug
+		trace('$reason for "$name", using defaults');
+		#end
+		metaData = getDefaultMetadata();
+	}
+
+	/**
+	 * Get a field value from parsed data with a default fallback.
+	 * @param data The parsed data object
+	 * @param field The field name
+	 * @param defaultValue The default value if field is null
+	 * @return The field value or default
+	 */
+	private function getFieldOrDefault<T>(data:Dynamic, field:String, defaultValue:T):T
+	{
+		var value = Reflect.field(data, field);
+		return value != null ? value : defaultValue;
 	}
 
 	private function load():Void
@@ -41,14 +89,24 @@ class Song
 		var jsonString = Paths.getMusicData(name);
 		if (jsonString == null)
 		{
-			trace('Music metadata not found for "$name"');
+			fallbackToDefaults('Music metadata not found');
 			return;
 		}
 
-		var parsedData:Dynamic = Json.parse(jsonString);
-		if (parsedData == null)
+		var parsedData:Dynamic = null;
+		try
 		{
-			trace('Error parsing music metadata for "$name"');
+			parsedData = Json.parse(jsonString);
+		}
+		catch (e:Dynamic)
+		{
+			fallbackToDefaults('Error parsing music metadata: $e');
+			return;
+		}
+
+		if (parsedData == null || parsedData.bpm == null)
+		{
+			fallbackToDefaults('Invalid or missing BPM in metadata');
 			return;
 		}
 
@@ -66,14 +124,14 @@ class Song
 		// Construct the metaData object with defaults and the converted map
 		// Plus, this fixes "Uncaught exception: Can't cast dynobj to haxe.ds.StringMap" when compiling to hashlink
 		metaData = {
-			title: parsedData.title == null ? name : parsedData.title,
-			artist: parsedData.artist == null ? "Unknown" : parsedData.artist,
+			title: getFieldOrDefault(parsedData, "title", name),
+			artist: getFieldOrDefault(parsedData, "artist", "Unknown"),
 			bpm: parsedData.bpm,
-			offset: parsedData.offset == null ? 0 : parsedData.offset,
-			timeSignature: parsedData.timeSignature == null ? "4/4" : parsedData.timeSignature,
+			offset: getFieldOrDefault(parsedData, "offset", 0),
+			timeSignature: getFieldOrDefault(parsedData, "timeSignature", "4/4"),
 			cuePoints: cuePointsMap,
-			tempoChanges: parsedData.tempoChanges == null ? [] : parsedData.tempoChanges,
-			looped: parsedData.looped == null ? false : parsedData.looped
+			tempoChanges: getFieldOrDefault(parsedData, "tempoChanges", []),
+			looped: getFieldOrDefault(parsedData, "looped", false)
 		};
 
 		#if debug
