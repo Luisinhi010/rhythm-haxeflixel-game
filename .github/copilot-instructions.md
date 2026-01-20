@@ -14,9 +14,9 @@ This is a rhythm game built with Haxe, OpenFL, and HaxeFlixel. The game is a Gui
 ### Haxe Language Guidelines
 - Use tabs for indentation (following HaxeFlixel conventions)
 - Place opening braces based on context (following `hxformat.json`):
-  - Use "both" (before and after) for general cases (functions, classes, etc.)
-  - Use "after" for object literals only
-- Use `if-else` with the `else` on the next line
+  - "both" setting means line breaks before AND after opening/closing braces for general cases
+  - Object literals use "after" - opening brace gets a line break after it only
+- Control flow: place `else` on the next line after the closing brace of the if block
 - Follow the style defined in `hxformat.json`
 - Use type annotations for all function parameters and return types
 - Prefer explicit typing over dynamic typing
