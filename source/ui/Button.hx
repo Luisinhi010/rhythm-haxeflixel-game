@@ -46,12 +46,7 @@ class Button extends FlxSpriteGroup
 		super.update(elapsed);
 		
 		#if !mobile
-		// Get absolute position for the button
-		var mousePos = FlxG.mouse.getPosition();
-		var absoluteX = x + bg.x;
-		var absoluteY = y + bg.y;
-		var mouseOverlaps = mousePos.x >= absoluteX && mousePos.x <= absoluteX + bg.width 
-			&& mousePos.y >= absoluteY && mousePos.y <= absoluteY + bg.height;
+		var mouseOverlaps = bg.overlapsPoint(FlxG.mouse.getPosition());
 		
 		if (mouseOverlaps)
 		{
