@@ -126,7 +126,7 @@ class Timeline extends FlxSpriteGroup
 	{
 		currentTime = time;
 		var xPos = timeToX(time);
-		playhead.x = xPos;
+		playhead.x = xPos - 1; // Center the 2-pixel wide playhead
 		playhead.visible = (xPos >= 0 && xPos < timelineWidth);
 	}
 	
