@@ -213,7 +213,7 @@ class MetadataEditorState extends DefaultState
 		
 		// Instructions
 		instructionsText = new FlxText(10, FlxG.height - 60, FlxG.width - 20,
-			"SPACE: Play/Pause | CTRL+S: Save | DELETE: Remove Selected | Click Timeline to Seek | F5: Reload");
+			"SPACE: Play/Pause | CTRL+S: Save | DELETE: Remove Selected | +/- or Wheel: Zoom | ← → : Scroll | Click Timeline to Seek | F5: Reload | M: Back to Debug");
 		instructionsText.color = FlxColor.GRAY;
 		add(instructionsText);
 		
@@ -253,6 +253,36 @@ class MetadataEditorState extends DefaultState
 			if (FlxG.keys.justPressed.DELETE)
 			{
 				deleteSelected();
+			}
+			
+			// Timeline scrolling with arrow keys
+			if (FlxG.keys.pressed.LEFT)
+			{
+				var scroll = timeline.scrollX - (100 * elapsed);
+				timeline.setScroll(scroll);
+			}
+			if (FlxG.keys.pressed.RIGHT)
+			{
+				var scroll = timeline.scrollX + (100 * elapsed);
+				timeline.setScroll(scroll);
+			}
+			
+			// Zoom with +/- keys
+			if (FlxG.keys.justPressed.PLUS || FlxG.keys.justPressed.NUMPADPLUS)
+			{
+				var newZoom = timeline.zoom * 1.2;
+				timeline.setZoom(newZoom);
+			}
+			if (FlxG.keys.justPressed.MINUS || FlxG.keys.justPressed.NUMPADMINUS)
+			{
+				var newZoom = timeline.zoom * 0.8;
+				timeline.setZoom(newZoom);
+			}
+			
+			// Go back to debug state
+			if (FlxG.keys.justPressed.M)
+			{
+				FlxG.switchState(new DebugState());
 			}
 		}
 	}

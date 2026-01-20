@@ -221,6 +221,22 @@ class Timeline extends FlxSpriteGroup
 		super.update(elapsed);
 		
 		#if !mobile
+		// Handle mouse wheel for zooming
+		if (FlxG.mouse.wheel != 0)
+		{
+			var mousePos = FlxG.mouse.getPosition();
+			var localX = mousePos.x - x;
+			var localY = mousePos.y - y;
+			
+			if (localX >= 0 && localX < timelineWidth && localY >= 0 && localY < timelineHeight)
+			{
+				var zoomFactor = FlxG.mouse.wheel > 0 ? 1.1 : 0.9;
+				var newZoom = zoom * zoomFactor;
+				newZoom = Math.max(0.5, Math.min(newZoom, 10));
+				setZoom(newZoom);
+			}
+		}
+		
 		// Handle timeline clicks
 		if (FlxG.mouse.justPressed)
 		{
