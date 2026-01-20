@@ -1,6 +1,7 @@
 package backend;
 
 import backend.FilePath.FilePathType;
+import core.utils.StringUtil;
 import flixel.FlxSprite;
 import flixel.graphics.FlxGraphic;
 import flixel.sound.FlxSound;
@@ -200,7 +201,7 @@ class Paths
 	 */
 	public static function getImage(imageName:String, ignoreMod:Bool = false):BitmapData
 	{
-		if (imageName == null || imageName.length == 0)
+		if (StringUtil.isEmpty(imageName))
 			return null;
 			
 		var path = FilePath.getImagePath(imageName, ignoreMod);

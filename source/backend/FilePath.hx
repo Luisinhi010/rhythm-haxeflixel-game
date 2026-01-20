@@ -1,5 +1,6 @@
 package backend;
 
+import core.utils.ArrayUtil;
 import core.utils.StringUtil;
 
 #if (sys && !android && !ios)
@@ -196,7 +197,7 @@ class FilePath
 	private static function findFirstExtension(fileName:String, extensions:Array<FilePathExtension>, type:FilePathType,
 			ignoreMod:Bool = false):FilePathExtension
 	{
-		if (extensions == null || extensions.length == 0)
+		if (ArrayUtil.isEmpty(extensions))
 			return NONE;
 		for (ext in extensions)
 		{
@@ -229,7 +230,7 @@ class FilePath
 		if (!isValidFileName(fileName))
 			return null;
 
-		if (extensions == null || extensions.length == 0)
+		if (ArrayUtil.isEmpty(extensions))
 		{
 			#if debug
 			trace('No extensions provided for type: ${Type.enumConstructor(type)}');
@@ -362,7 +363,7 @@ class FilePath
 	 */
 	private static function resourceExists(fileName:String, type:FilePathType, extensions:Array<FilePathExtension>, ignoreMod:Bool = false):Bool
 	{
-		if (!isValidFileName(fileName) || extensions == null || extensions.length == 0)
+		if (!isValidFileName(fileName) || ArrayUtil.isEmpty(extensions))
 			return false;
 		
 		var ext = findFirstExtension(fileName, extensions, type, ignoreMod);
