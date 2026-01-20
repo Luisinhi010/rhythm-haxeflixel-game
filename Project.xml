@@ -43,6 +43,10 @@
 	<!--In case you want to use the ui package-->
 	<!--<haxelib name="flixel-ui"/>-->
 	
+	<!--Haxe-UI library for metadata editor-->
+	<haxelib name="haxeui-core" />
+	<haxelib name="haxeui-flixel" />
+	
 	<!-- ______________________________ Haxedefines _____________________________ -->
 	
 	<!--Remove the legacy health system-->

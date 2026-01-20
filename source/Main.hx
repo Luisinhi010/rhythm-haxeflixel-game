@@ -8,7 +8,7 @@ class Main extends Sprite
 	var options = {
 		gameWidth: 1920,
 		gameHeight: 1080,
-		initialState: #if debug states.DebugState #else states.PlayState #end,
+		initialState: #if debug states.DebugState #else states.MainMenuState #end,
 		framerate: 60,
 		skipSplash: true,
 		startFullscreen: false,
