@@ -1,9 +1,10 @@
 package ui;
 
+import flixel.FlxG;
 import flixel.FlxSprite;
+import flixel.group.FlxSpriteGroup;
 import flixel.text.FlxText;
 import flixel.util.FlxColor;
-import flixel.group.FlxSpriteGroup;
 
 /**
  * A simple clickable button with text label
@@ -45,7 +46,7 @@ class Button extends FlxSpriteGroup
 		super.update(elapsed);
 		
 		#if !mobile
-		var mouseOverlaps = bg.overlapsPoint(flixel.FlxG.mouse.getPosition());
+		var mouseOverlaps = bg.overlapsPoint(FlxG.mouse.getPosition());
 		
 		if (mouseOverlaps)
 		{
@@ -55,13 +56,13 @@ class Button extends FlxSpriteGroup
 				bg.color = hoverColor;
 			}
 			
-			if (flixel.FlxG.mouse.justPressed)
+			if (FlxG.mouse.justPressed)
 			{
 				bg.color = clickColor;
 				if (onClick != null)
 					onClick();
 			}
-			else if (flixel.FlxG.mouse.pressed)
+			else if (FlxG.mouse.pressed)
 			{
 				bg.color = clickColor;
 			}

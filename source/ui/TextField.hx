@@ -75,7 +75,7 @@ class TextField extends FlxSpriteGroup
 			// Handle keyboard input
 			if (FlxG.keys.justPressed.BACKSPACE && text.length > 0)
 			{
-				text = text.substr(0, text.length - 1);
+				text = text.substring(0, text.length - 1);
 				updateText();
 			}
 			else if (FlxG.keys.justPressed.ENTER)
