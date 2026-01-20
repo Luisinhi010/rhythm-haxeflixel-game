@@ -1,14 +1,11 @@
 package states;
 
-import backend.FilePath;
 import backend.MusicMetaData;
 import backend.Paths;
 import flixel.FlxG;
 import flixel.addons.ui.FlxInputText;
 import flixel.addons.ui.FlxUIButton;
 import flixel.addons.ui.FlxUICheckBox;
-import flixel.addons.ui.FlxUIDropDownMenu;
-import flixel.group.FlxGroup;
 import flixel.text.FlxText;
 import flixel.util.FlxColor;
 import haxe.Json;
