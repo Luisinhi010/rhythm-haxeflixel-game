@@ -123,6 +123,7 @@ rhythm-haxeflixel-game/
 │   │   └── utils/                 # Utilitários gerais
 │   │       ├── MathUtil.hx        # Funções matemáticas
 │   │       ├── StringUtil.hx      # Formatação de strings
+│   │       ├── SpriteUtil.hx      # Funções para FlxSprites
 │   │       └── ArrayUtil.hx       # Manipulação de arrays
 │   ├── objects/                   # Objetos do jogo
 │   │   ├── Conductor.hx           # Sistema de ritmo e música
