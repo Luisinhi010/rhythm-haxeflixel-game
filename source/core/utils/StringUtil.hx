@@ -84,4 +84,168 @@ class StringUtil
 	{
 		return StringTools.rpad(str, char, length);
 	}
+	/**
+	 * Repeats a string n times.
+	 * @param str String to repeat
+	 * @param times Number of repetitions
+	 * @return Repeated string
+	 */
+	public static function repeat(str:String, times:Int):String
+	{
+		if (isEmpty(str) || times <= 0)
+			return "";
+		if (times == 1)
+			return str;
+
+		var result = new StringBuf();
+		for (i in 0...times)
+			result.add(str);
+		return result.toString();
+	}
+
+	/**
+	 * Truncates a string to specified length, adding ellipsis if needed.
+	 * @param str String to truncate
+	 * @param maxLength Maximum length (including ellipsis)
+	 * @param ellipsis Ellipsis string (default "...")
+	 * @return Truncated string
+	 */
+	public static function truncate(str:String, maxLength:Int, ellipsis:String = "..."):String
+	{
+		if (isEmpty(str) || str.length <= maxLength)
+			return str;
+
+		var cutLength = maxLength - ellipsis.length;
+		if (cutLength <= 0)
+			return ellipsis.substr(0, maxLength);
+
+		return str.substr(0, cutLength) + ellipsis;
+	}
+
+	/**
+	 * Removes all whitespace from a string.
+	 * @param str String to process
+	 * @return String without whitespace
+	 */
+	public static function removeWhitespace(str:String):String
+	{
+		if (isEmpty(str))
+			return "";
+		return StringTools.replace(StringTools.replace(str, " ", ""), "\t", "");
+	}
+
+	/**
+	 * Checks if string contains substring (case insensitive).
+	 * @param str String to search in
+	 * @param substr Substring to find
+	 * @return true if contains
+	 */
+	public static inline function containsIgnoreCase(str:String, substr:String):Bool
+	{
+		if (isEmpty(str) || isEmpty(substr))
+			return false;
+		return str.toLowerCase().indexOf(substr.toLowerCase()) >= 0;
+	}
+
+	/**
+	 * Checks if string starts with prefix (case sensitive).
+	 * Direct delegation to StringTools.
+	 */
+	public static inline function startsWith(str:String, prefix:String):Bool
+	{
+		if (isEmpty(str))
+			return isEmpty(prefix);
+		return StringTools.startsWith(str, prefix);
+	}
+
+	/**
+	 * Checks if string ends with suffix (case sensitive).
+	 * Direct delegation to StringTools.
+	 */
+	public static inline function endsWith(str:String, suffix:String):Bool
+	{
+		if (isEmpty(str))
+			return isEmpty(suffix);
+		return StringTools.endsWith(str, suffix);
+	}
+
+	/**
+	 * Reverses a string.
+	 * @param str String to reverse
+	 * @return Reversed string
+	 */
+	public static function reverse(str:String):String
+	{
+		if (isEmpty(str))
+			return "";
+		var chars = str.split("");
+		chars.reverse();
+		return chars.join("");
+	}
+
+	/**
+	 * Counts occurrences of a substring.
+	 * @param str String to search in
+	 * @param substr Substring to count
+	 * @return Number of occurrences
+	 */
+	public static function countOccurrences(str:String, substr:String):Int
+	{
+		if (isEmpty(str) || isEmpty(substr))
+			return 0;
+
+		var count = 0;
+		var pos = 0;
+
+		while ((pos = str.indexOf(substr, pos)) >= 0)
+		{
+			count++;
+			pos += substr.length;
+		}
+
+		return count;
+	}
+
+	/**
+	 * Wraps text to specified line width.
+	 * @param str Text to wrap
+	 * @param width Maximum line width
+	 * @return Wrapped text with newlines
+	 */
+	public static function wordWrap(str:String, width:Int):String
+	{
+		if (isEmpty(str) || width <= 0)
+			return str;
+
+		var words = str.split(" ");
+		var lines:Array<String> = [];
+		var currentLine = "";
+
+		for (word in words)
+		{
+			if (currentLine.length + word.length + 1 > width)
+			{
+				if (currentLine.length > 0)
+				{
+					lines.push(currentLine);
+					currentLine = word;
+				}
+				else
+				{
+					lines.push(word);
+				}
+			}
+			else
+			{
+				if (currentLine.length > 0)
+					currentLine += " ";
+				currentLine += word;
+			}
+		}
+
+		if (currentLine.length > 0)
+			lines.push(currentLine);
+
+		return lines.join("\n");
+	}
 }

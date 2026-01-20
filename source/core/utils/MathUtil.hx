@@ -1,5 +1,6 @@
 package core.utils;
 
+import core.utils.ArrayUtil;
 import flixel.FlxG;
 import flixel.math.FlxMath;
 
@@ -162,5 +163,136 @@ class MathUtil
 	{
 		if (b == 0) return 0;
 		return a / b;
+	}
+	/**
+	 * Calculates distance between two points.
+	 * @param x1 First point X
+	 * @param y1 First point Y
+	 * @param x2 Second point X
+	 * @param y2 Second point Y
+	 * @return Distance between points
+	 */
+	public static inline function distance(x1:Float, y1:Float, x2:Float, y2:Float):Float
+	{
+		return FlxMath.distanceBetween(x1, y1, x2, y2);
+	}
+
+	/**
+	 * Calculates squared distance (faster, no sqrt).
+	 * Useful for distance comparisons where exact distance isn't needed.
+	 */
+	public static inline function distanceSquared(x1:Float, y1:Float, x2:Float, y2:Float):Float
+	{
+		var dx = x2 - x1;
+		var dy = y2 - y1;
+		return dx * dx + dy * dy;
+	}
+
+	/**
+	 * Calculates angle in radians between two points.
+	 * @param x1 Start point X
+	 * @param y1 Start point Y
+	 * @param x2 End point X
+	 * @param y2 End point Y
+	 * @return Angle in radians
+	 */
+	public static inline function angleBetween(x1:Float, y1:Float, x2:Float, y2:Float):Float
+	{
+		return FlxMath.angleBetween(x1, y1, x2, y2);
+	}
+
+	/**
+	 * Calculates angle in degrees between two points.
+	 */
+	public static inline function angleBetweenDegrees(x1:Float, y1:Float, x2:Float, y2:Float):Float
+	{
+		return radToDeg(angleBetween(x1, y1, x2, y2));
+	}
+
+	/**
+	 * Wraps an angle to the range [0, 360) degrees.
+	 * @param angle Angle in degrees
+	 * @return Wrapped angle
+	 */
+	public static inline function wrapAngle(angle:Float):Float
+	{
+		return FlxMath.wrapAngle(angle);
+	}
+
+	/**
+	 * Returns the minimum of multiple values.
+	 * More convenient than Math.min for 3+ values.
+	 */
+	public static function min(values:Array<Float>):Float
+	{
+		if (ArrayUtil.isEmpty(values))
+			return 0;
+		var result = values[0];
+		for (i in 1...values.length)
+		{
+			if (values[i] < result)
+				result = values[i];
+		}
+		return result;
+	}
+
+	/**
+	 * Returns the maximum of multiple values.
+	 * More convenient than Math.max for 3+ values.
+	 */
+	public static function max(values:Array<Float>):Float
+	{
+		if (ArrayUtil.isEmpty(values))
+			return 0;
+		var result = values[0];
+		for (i in 1...values.length)
+		{
+			if (values[i] > result)
+				result = values[i];
+		}
+		return result;
+	}
+
+	/**
+	 * Calculates average of array values.
+	 * @param values Array of numbers
+	 * @return Average value, or 0 if empty
+	 */
+	public static function average(values:Array<Float>):Float
+	{
+		if (ArrayUtil.isEmpty(values))
+			return 0;
+		var sum:Float = 0;
+		for (value in values)
+			sum += value;
+		return sum / values.length;
+	}
+
+	/**
+	 * Smooth step interpolation (ease in/out).
+	 * Returns smooth curve between 0 and 1 for t in [0, 1].
+	 */
+	public static function smoothStep(t:Float):Float
+	{
+		t = clamp(t, 0, 1);
+		return t * t * (3 - 2 * t);
+	}
+
+	/**
+	 * Smoother step interpolation (better ease in/out).
+	 * Ken Perlin's improved smoothstep.
+	 */
+	public static function smootherStep(t:Float):Float
+	{
+		t = clamp(t, 0, 1);
+		return t * t * t * (t * (t * 6 - 15) + 10);
+	}
+
+	/**
+	 * Checks if value is within range (inclusive).
+	 */
+	public static inline function inRange(value:Float, min:Float, max:Float):Bool
+	{
+		return value >= min && value <= max;
 	}
 }

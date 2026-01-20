@@ -84,4 +84,122 @@ class ArrayUtil
 		if (arr == null || arr.length == 0) return null;
 		return arr[0];
 	}
+	/**
+	 * Checks if array is null or empty.
+	 * Convenience method for quick validation.
+	 */
+	public static inline function isEmpty<T>(arr:Array<T>):Bool
+	{
+		return arr == null || arr.length == 0;
+	}
+
+	/**
+	 * Returns a random subset of elements from an array.
+	 * @param arr Source array
+	 * @param count Number of elements to return
+	 * @return New array with random elements (no duplicates)
+	 */
+	public static function randomSubset<T>(arr:Array<T>, count:Int):Array<T>
+	{
+		if (isEmpty(arr) || count <= 0)
+			return [];
+		if (count >= arr.length)
+			return arr.copy();
+
+		var shuffled = shuffle(arr);
+		return shuffled.slice(0, count);
+	}
+
+	/**
+	 * Creates an array with unique elements (removes duplicates).
+	 * Uses native array operations for best performance.
+	 * @param arr Source array
+	 * @return New array without duplicates
+	 */
+	public static function unique<T>(arr:Array<T>):Array<T>
+	{
+		if (isEmpty(arr))
+			return [];
+
+		var result:Array<T> = [];
+		for (item in arr)
+		{
+			if (!result.contains(item))
+				result.push(item);
+		}
+		return result;
+	}
+
+	/**
+	 * Splits array into chunks of specified size.
+	 * @param arr Source array
+	 * @param size Chunk size
+	 * @return Array of arrays (chunks)
+	 */
+	public static function chunk<T>(arr:Array<T>, size:Int):Array<Array<T>>
+	{
+		if (isEmpty(arr) || size <= 0)
+			return [];
+
+		var result:Array<Array<T>> = [];
+		var i = 0;
+
+		while (i < arr.length)
+		{
+			result.push(arr.slice(i, i + size));
+			i += size;
+		}
+
+		return result;
+	}
+
+	/**
+	 * Finds the index of the minimum value in a numeric array.
+	 * @param arr Source array of numbers
+	 * @return Index of minimum value, or -1 if array empty
+	 */
+	public static function indexOfMin(arr:Array<Float>):Int
+	{
+		if (isEmpty(arr))
+			return -1;
+
+		var minIndex = 0;
+		var minValue = arr[0];
+
+		for (i in 1...arr.length)
+		{
+			if (arr[i] < minValue)
+			{
+				minValue = arr[i];
+				minIndex = i;
+			}
+		}
+
+		return minIndex;
+	}
+
+	/**
+	 * Finds the index of the maximum value in a numeric array.
+	 * @param arr Source array of numbers
+	 * @return Index of maximum value, or -1 if array empty
+	 */
+	public static function indexOfMax(arr:Array<Float>):Int
+	{
+		if (isEmpty(arr))
+			return -1;
+
+		var maxIndex = 0;
+		var maxValue = arr[0];
+
+		for (i in 1...arr.length)
+		{
+			if (arr[i] > maxValue)
+			{
+				maxValue = arr[i];
+				maxIndex = i;
+			}
+		}
+
+		return maxIndex;
+	}
 }
