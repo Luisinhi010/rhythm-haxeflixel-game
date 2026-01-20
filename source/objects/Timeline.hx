@@ -28,6 +28,7 @@ class Timeline extends FlxSpriteGroup
 	private var bpmMarkers:Array<BPMMarker>;
 	private var timeLabels:FlxSpriteGroup;
 	private var isDirty:Bool = true;
+	private var _tempRect:openfl.geom.Rectangle; // Reusable rectangle for drawing
 	
 	public var onTimelineClick:Float->Void;
 	public var onCuePointClick:CuePointMarker->Void;
@@ -42,6 +43,7 @@ class Timeline extends FlxSpriteGroup
 		
 		cueMarkers = [];
 		bpmMarkers = [];
+		_tempRect = new openfl.geom.Rectangle();
 		
 		// Background
 		bg = new FlxSprite();
@@ -69,7 +71,11 @@ class Timeline extends FlxSpriteGroup
 	{
 		if (!isDirty) return;
 		
-		beatGrid.pixels.fillRect(new openfl.geom.Rectangle(0, 0, beatGrid.width, beatGrid.height), FlxColor.TRANSPARENT);
+		_tempRect.x = 0;
+		_tempRect.y = 0;
+		_tempRect.width = beatGrid.width;
+		_tempRect.height = beatGrid.height;
+		beatGrid.pixels.fillRect(_tempRect, FlxColor.TRANSPARENT);
 		
 		var beatDuration = 60000 / bpm; // in milliseconds
 		var visibleDuration = songDuration / zoom;
@@ -90,8 +96,12 @@ class Timeline extends FlxSpriteGroup
 				var lineColor = (i % 4 == 0) ? FlxColor.fromRGB(80, 80, 80) : FlxColor.fromRGB(50, 50, 50);
 				var lineHeight = (i % 4 == 0) ? Std.int(timelineHeight) : Std.int(timelineHeight * 0.7);
 				
-				// Draw vertical line using fillRect for better performance
-				beatGrid.pixels.fillRect(new openfl.geom.Rectangle(Std.int(xPos), 0, 1, lineHeight), lineColor);
+				// Draw vertical line using fillRect for better performance (reuse _tempRect)
+				_tempRect.x = Std.int(xPos);
+				_tempRect.y = 0;
+				_tempRect.width = 1;
+				_tempRect.height = lineHeight;
+				beatGrid.pixels.fillRect(_tempRect, lineColor);
 			}
 		}
 		
