@@ -1,5 +1,7 @@
 package backend;
 
+import core.utils.StringUtil;
+
 #if (sys && !android && !ios)
 import sys.FileSystem;
 import sys.io.File;
@@ -125,7 +127,7 @@ class FilePath
 	{
 		if (fileName == null || fileName == "")
 		{
-			#if DEBUG
+			#if debug
 			throw "File name cannot be null or empty.";
 			#end
 			return false;
@@ -155,7 +157,7 @@ class FilePath
 	{
 		if (fileName == null || fileName == "")
 		{
-			#if DEBUG
+			#if debug
 			throw "File name cannot be null or empty.";
 			#end
 			return null;
@@ -179,7 +181,7 @@ class FilePath
 	{
 		if (fileName == null || fileName == "")
 		{
-			#if DEBUG
+			#if debug
 			throw "File name cannot be null or empty.";
 			#end
 			return null;
