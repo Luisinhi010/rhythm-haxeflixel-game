@@ -77,6 +77,8 @@ class ResponsiveLayout
 	 */
 	private function calculateColumnWidth(columns:Int, totalWidth:Float, gap:Float):Float
 	{
+		if (columns <= 0) return 0;
+		
 		var totalGap = gap * (columns - 1);
 		return (totalWidth - totalGap) / columns;
 	}
