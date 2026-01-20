@@ -20,7 +20,7 @@ class MathUtil
 	 * @param max Maximum value
 	 * @return Clamped value
 	 */
-	public static inline function clamp(value:Float, min:Float, max:Float):Float
+	public static function clamp(value:Float, min:Float, max:Float):Float
 	{
 		return FlxMath.bound(value, min, max);
 	}
@@ -28,7 +28,7 @@ class MathUtil
 	/**
 	 * Clamps an integer value between a minimum and maximum.
 	 */
-	public static inline function clampInt(value:Int, min:Int, max:Int):Int
+	public static function clampInt(value:Int, min:Int, max:Int):Int
 	{
 		return Std.int(FlxMath.bound(value, min, max));
 	}
@@ -40,7 +40,7 @@ class MathUtil
 	 * @param precision Number of decimal places
 	 * @return Rounded value
 	 */
-	public static inline function roundTo(value:Float, precision:Int):Float
+	public static function roundTo(value:Float, precision:Int):Float
 	{
 		return FlxMath.roundDecimal(value, precision);
 	}
@@ -53,7 +53,7 @@ class MathUtil
 	 * @param t Interpolation factor (0.0 to 1.0)
 	 * @return Interpolated value
 	 */
-	public static inline function lerp(a:Float, b:Float, t:Float):Float
+	public static function lerp(a:Float, b:Float, t:Float):Float
 	{
 		return FlxMath.lerp(a, b, t);
 	}
@@ -61,7 +61,7 @@ class MathUtil
 	/**
 	 * Linear interpolation with automatic clamping of t.
 	 */
-	public static inline function lerpClamp(a:Float, b:Float, t:Float):Float
+	public static function lerpClamp(a:Float, b:Float, t:Float):Float
 	{
 		return FlxMath.lerp(a, b, FlxMath.bound(t, 0, 1));
 	}
@@ -77,7 +77,7 @@ class MathUtil
 	 * @param outMax Output range maximum
 	 * @return Mapped value
 	 */
-	public static inline function mapRange(value:Float, inMin:Float, inMax:Float, outMin:Float, outMax:Float):Float
+	public static function mapRange(value:Float, inMin:Float, inMax:Float, outMin:Float, outMax:Float):Float
 	{
 		if (inMax == inMin)
 			return outMin;
