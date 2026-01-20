@@ -36,14 +36,42 @@ This is a rhythm game built with Haxe, OpenFL, and HaxeFlixel. The game is a Gui
 - Package structure follows directory structure
 - Files are organized as:
   - `source/` - All source code
-    - `backend/` - Core utilities and managers (Paths, InputManager, typedefs)
-    - `core/` - Core game systems
-    - `objects/` - Game objects (Conductor, Song, DefaultBar, etc.)
-    - `states/` - Game states (PlayState, DebugState, DefaultState)
+    - `backend/` - Core utilities and managers
+      - `Paths.hx` - Asset loading and caching system
+      - `InputManager.hx` - Input binding and management
+      - `FilePath.hx` - File path utilities
+      - `FlxGroupContainer.hx` - Positionable FlxGroup with x/y coordinates
+      - Typedefs: `BeatEvent.hx`, `MusicMetaData.hx`
+    - `core/` - Core game systems and utilities
+      - `utils/` - Utility classes
+        - `MathUtil.hx` - Math utilities (lerp, clamp, map, etc.)
+        - `StringUtil.hx` - String utilities (formatting, padding, etc.)
+        - `ArrayUtil.hx` - Array utilities (shuffle, random, etc.)
+      - `domain/` - Domain models (reserved)
+      - `services/` - Services (reserved)
+    - `infrastructure/` - Infrastructure layer (reserved for future use)
+      - `adapters/` - External adapters
+      - `assets/` - Asset management
+      - `audio/` - Audio systems
+      - `input/` - Input systems
+    - `presentation/` - Presentation layer (reserved for future use)
+      - `states/` - UI states
+    - `objects/` - Game objects
+      - `Conductor.hx` - Music playback and rhythm tracking
+      - `Song.hx` - Music data container
+      - `DefaultBar.hx` - Base rhythm bar class
+      - `ConductorDebugger.hx` - Visual debugger for Conductor
+      - `Metronome.hx` - Metronome click sounds
+      - `UtilTester.hx` - Visual tester for utility functions
+    - `states/` - Game states
+      - `DefaultState.hx` - Base state with common functionality
+      - `PlayState.hx` - Main gameplay state
+      - `DebugState.hx` - Testing and debugging state
   - `assets/` - Game assets
     - `images/` - Images
-    - `music/` - Music files
+    - `music/` - Music files (.ogg, .mp3, .wav)
     - `sounds/` - Sound effects
+    - `ui/` - UI assets
 
 ## Architecture Patterns
 
@@ -102,6 +130,26 @@ This is a rhythm game built with Haxe, OpenFL, and HaxeFlixel. The game is a Gui
 - Use FlxTween for smooth animations
 - Use FlxTimer for timed events
 
+### Conductor System
+- `Conductor` class manages music playback and rhythm tracking
+  - Handles BPM, beats, steps, bars, and sections
+  - Supports tempo changes mid-song
+  - Supports cue points for jumping to specific sections
+  - Dispatches beat events via callbacks: `beatHit`, `stepHit`, `sectionHit`, `barHit`
+  - Use `play()`, `pause()`, `stop()`, `restart()` for playback control
+  - Use `jumpToCue(name)` to jump to named cue points
+- `Song` class is a data container for music metadata and audio
+  - Loads metadata from JSON files
+  - Holds FlxSound instance
+  - Manages cue points and tempo changes
+- `ConductorDebugger` provides visual debugging for Conductor
+  - Shows beats, cue points, and tempo changes on a timeline
+  - Displays current position marker
+  - Toggle with `toggleDebugMode()`
+- `Metronome` provides click sounds for beats
+  - Supports pitch variation for accented beats
+  - Use `click(beat)` to play a metronome sound
+
 ### Input Handling
 - Use `InputManager` from `backend/InputManager.hx` for game-specific input handling
 - Direct `FlxG.keys` access is acceptable for debug/utility features (e.g., F5 to reload state in DefaultState)
@@ -148,11 +196,62 @@ This is a rhythm game built with Haxe, OpenFL, and HaxeFlixel. The game is a Gui
 - Release builds: `lime test <target> -release`
 - The build output goes to `export/debug/` or `export/release/` based on the build type
 
+### Debug Tools
+- **F5**: Reload current state (available in all states via DefaultState)
+- **DebugState Controls**:
+  - **SPACE**: Toggle music playback (play/pause)
+  - **R**: Restart music from beginning
+  - **Q**: Jump to "test" cue point
+  - **T**: Toggle UtilTester display
+  - **Arrow Keys**: Navigate between utility test sections in UtilTester
+- **UtilTester**: Visual demonstrations of MathUtil, StringUtil, and ArrayUtil functions
+- **ConductorDebugger**: Visual timeline showing beats, cue points, and tempo changes
+
 ## Common Utilities
+
+### Platform Utilities (`Util.hx`)
 - Use `Util.hx` (located at `source/Util.hx`) for platform-specific utilities
   - `getWritablePath()`: Converts relative paths to platform-specific writable paths
-- Use `FlxStringUtil` for string formatting
+
+### Math Utilities (`core/utils/MathUtil.hx`)
+Delegates to native Haxe/FlxMath implementations where possible:
+- `clamp(value, min, max)` / `clampInt()` - Constrain values to ranges
+- `lerp(a, b, t)` / `lerpClamp()` - Linear interpolation
+- `mapRange(value, inMin, inMax, outMin, outMax)` - Map value from one range to another
+- `roundTo(value, precision)` - Round to decimal places
+- `degToRad()` / `radToDeg()` - Angle conversion
+- `positiveMod()` - Always positive modulo
+- `approxEqual(a, b, epsilon)` - Floating point comparison
+- `sign(x)` - Returns -1, 0, or 1
+- `randomRange(min, max)` / `randomRangeInt()` - Random value generation
+
+### String Utilities (`core/utils/StringUtil.hx`)
+Delegates to native StringTools and FlxStringUtil:
+- `capitalization(str)` - Capitalize first letter
+- `formatTime(seconds)` / `formatTimeMs(ms)` - Format time as "MM:SS"
+- `isEmpty(str)` - Null-safe empty check
+- `trim(str)` - Remove whitespace
+- `padLeft()` / `padRight()` - Pad strings with characters
+
+### Array Utilities (`core/utils/ArrayUtil.hx`)
+Delegates to native Array methods and FlxG.random:
+- `pickRandom(arr)` - Select random element
+- `shuffle(arr, howManyTimes)` - Shuffle array (returns copy)
+- `remove(arr, element)` - Remove element (deprecated, use native)
+- `contains(arr, element)` - Check if contains (deprecated, use native)
+- `first(arr)` / `last(arr)` - Get first/last element (null-safe)
+
+### Container Utilities (`backend/FlxGroupContainer.hx`)
+- A `FlxGroup` that supports positioning with `x` and `y` coordinates
+- Useful for grouping mixed types of `FlxBasic` objects
+- Children are positioned relative to the container
+- Similar to `FlxTypedSpriteGroup` but works with any `FlxBasic`
+
+### Framework Utilities
+- Use `FlxStringUtil` for advanced string formatting
 - Use `FlxColor` for color management (provides color constants and utilities)
+- Use `FlxMath` for additional math operations
+- Use `FlxG.random` for random number generation
 
 ## Best Practices
 - Always dispose of BitmapData when clearing cache or removing sprites
@@ -161,6 +260,10 @@ This is a rhythm game built with Haxe, OpenFL, and HaxeFlixel. The game is a Gui
 - Test on multiple platforms when making changes to platform-specific code
 - Use `FlxG.autoPause = false;` in PlayState to keep music playing when window loses focus
 - Use `trace()` for debugging in development, but wrap in `#if debug` for production
+- Prefer native implementations over custom utilities (use FlxMath, FlxG.random, Array methods)
+- Use `FlxGroupContainer` for positioning groups of mixed FlxBasic objects
+- Set up beat callbacks on Conductor for rhythm-based gameplay events
+- Use `UtilTester` in DebugState (press T) to visualize and test utility functions
 
 ## Performance Considerations
 - Cache assets aggressively - use `Paths` caching system

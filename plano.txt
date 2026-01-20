@@ -1,24 +1,231 @@
-Em portugues
+# PLANO DE DESIGN - RHYTHM GAME
+# Documento em Português Brasileiro
 
-O plano, é: 
-Um jogo de ritimo estilo Guitar hero, Friday Night Funkin, que o jogador tem que pressionar as teclas no "ritimo" certo da musica.
-O visual do estado de jogo é:
-* Uma barra no meio da tela -> vai vim outras barras dos lados e o jogador tem que pressionar o lado em que as barras vieram (lembrando a batalha contra a undyne no undertale)
-* Uma barra de vida no topo da tela -> se o jogador errar muitas barras, a barra de vida vai diminuindo
-* Uma barra de combo no topo da tela -> se o jogador acertar muitas barras, a barra de combo vai aumentando
-* Uma barra de score no topo da tela -> se o jogador acertar muitas barras, a barra de score vai aumentando
-* o fundo pode ser uma imagem ou um video dempendendo da musica escolhida
+═══════════════════════════════════════════════════════════════════
+ CONCEITO PRINCIPAL
+═══════════════════════════════════════════════════════════════════
 
-efeitos de gameplay: 
-* as barras podem ter velocidades diferentes, com o jogador tendo que adaptar a elas
-* as barras podem ter cores diferentes, com uns sendo de dano e outros de cura
-* o jogador pode escolher a dificuldade, que vai mudar a velocidade e a quantidade de barras que vão aparecer
-* o jogador pode escolher a musica que vai tocar, que vai mudar o ritmo do jogo
-* o jogador pode escolher a dificuldade, que vai mudar a velocidade e a quantidade de barras que vão aparecer
-* o jogador pode escolher o modo de jogo, que vai mudar a quantidade de barras que vão aparecer e a velocidade delas
-* o jogador pode escolher o tema do jogo, que vai mudar a cor das barras e do fundo
+Um jogo de ritmo estilo Guitar Hero e Friday Night Funkin', onde o
+jogador pressiona teclas direcionais no ritmo certo da música.
 
+INSPIRAÇÕES:
+  • Guitar Hero - Sistema de notas vindas em direção ao jogador
+  • Friday Night Funkin' - Estética moderna e músicas customizáveis
+  • Undertale (Batalha Undyne) - Sistema de barras vindas dos lados
 
+═══════════════════════════════════════════════════════════════════
+ GAMEPLAY VISUAL
+═══════════════════════════════════════════════════════════════════
 
-mais para ser pensado
+ELEMENTOS DA INTERFACE:
+
+  1. BARRA CENTRAL (Fixa no centro)
+     • Posição: Centro da tela
+     • Função: Ponto de referência para acertar as barras
+     • Visual: Barra vertical destacada
+
+  2. BARRAS DE ENTRADA (Vindas dos lados)
+     • Origem: Esquerda, Direita, Cima, Baixo
+     • Movimento: Em direção à barra central
+     • Objetivo: Pressionar a tecla quando alinhar
+
+  3. BARRA DE VIDA (Topo esquerdo)
+     • Inicia: 100% (cheia)
+     • Diminui: Ao errar ou não pressionar
+     • Game Over: Quando chegar a 0%
+
+  4. CONTADOR DE COMBO (Topo centro)
+     • Aumenta: A cada acerto consecutivo
+     • Reseta: Ao errar
+     • Multiplica: Pontuação do jogador
+
+  5. PONTUAÇÃO (Topo direito)
+     • Aumenta: Por cada nota acertada
+     • Bônus: Baseado no timing e combo
+     • Rankings: Melhor pontuação por música
+
+  6. BACKGROUND DINÂMICO
+     • Tipo: Imagem estática ou vídeo animado
+     • Dependência: Configuração por música
+     • Efeitos: Pode pulsar no beat
+
+═══════════════════════════════════════════════════════════════════
+ MECÂNICAS DE GAMEPLAY
+═══════════════════════════════════════════════════════════════════
+
+──────────────────────────────────────────────────────────────────
+1. SISTEMA DE BARRAS
+──────────────────────────────────────────────────────────────────
+
+   VELOCIDADES VARIÁVEIS:
+   • Barras lentas: Mais tempo para reagir, pontos normais
+   • Barras rápidas: Menos tempo, mais pontos
+   • Barras com aceleração: Mudam velocidade durante movimento
+
+   TIPOS DE BARRAS (Por Cor):
+   • Branca/Azul: Barras normais (neutras)
+   • Verde: Barras de cura (+vida ao acertar)
+   • Vermelha: Barras de dano (−vida ao errar)
+   • Dourada: Barras bônus (pontuação 2x)
+   • Roxa: Barras especiais (efeitos visuais)
+
+──────────────────────────────────────────────────────────────────
+2. SISTEMA DE PRECISÃO
+──────────────────────────────────────────────────────────────────
+
+   JANELAS DE TIMING:
+   • PERFECT:  ±20ms  → 100% pontos + combo
+   • GREAT:    ±50ms  → 80% pontos + combo
+   • GOOD:     ±80ms  → 50% pontos + combo
+   • OK:       ±120ms → 25% pontos, reseta combo
+   • MISS:     >120ms → 0 pontos, perde vida, reseta combo
+
+──────────────────────────────────────────────────────────────────
+3. SISTEMA DE DIFICULDADE
+──────────────────────────────────────────────────────────────────
+
+   FÁCIL:
+   • Velocidade: 1.0x (base)
+   • Densidade: Baixa (poucas barras simultâneas)
+   • Janela de timing: Mais tolerante (+40ms)
+   • Tipos especiais: Apenas barras normais e cura
+
+   NORMAL:
+   • Velocidade: 1.3x
+   • Densidade: Média
+   • Janela de timing: Padrão
+   • Tipos especiais: Todos os tipos disponíveis
+
+   DIFÍCIL:
+   • Velocidade: 1.6x
+   • Densidade: Alta (múltiplas direções)
+   • Janela de timing: Mais rigorosa (−20ms)
+   • Tipos especiais: Mais barras de dano
+
+   EXPERT:
+   • Velocidade: 2.0x
+   • Densidade: Muito alta
+   • Janela de timing: Muito rigorosa (−40ms)
+   • Tipos especiais: Padrões complexos
+
+──────────────────────────────────────────────────────────────────
+4. MODOS DE JOGO
+──────────────────────────────────────────────────────────────────
+
+   MODO HISTÓRIA:
+   • Progressão linear de músicas
+   • Dificuldade crescente
+   • Desbloqueia conteúdo
+
+   MODO LIVRE:
+   • Escolha qualquer música desbloqueada
+   • Escolha a dificuldade
+   • Prática e treino
+
+   MODO ENDLESS:
+   • Músicas aleatórias consecutivas
+   • Vida compartilhada entre músicas
+   • Pontuação acumulada
+
+   MODO PERSONALIZADO:
+   • Modifiers customizáveis
+   • Velocidade ajustável
+   • Prática de seções específicas
+
+═══════════════════════════════════════════════════════════════════
+ CUSTOMIZAÇÃO E PERSONALIZAÇÃO
+═══════════════════════════════════════════════════════════════════
+
+  TEMAS VISUAIS:
+  • Esquema de cores das barras
+  • Estilo do background
+  • Efeitos de partículas
+  • Skins da barra central
+
+  EFEITOS VISUAIS:
+  • Screen shake nos beats
+  • Flash de acerto
+  • Trail das barras
+  • Bloom e glow
+
+  ÁUDIO:
+  • Volume master
+  • Volume de música
+  • Volume de efeitos sonoros
+  • Offset de áudio (calibração)
+
+═══════════════════════════════════════════════════════════════════
+ SISTEMA TÉCNICO
+═══════════════════════════════════════════════════════════════════
+
+  CONDUCTOR SYSTEM:
+  • Gerencia BPM e mudanças de tempo
+  • Calcula beats, steps, bars
+  • Dispara eventos de ritmo
+  • Suporta cue points
+
+  CHART SYSTEM (A Implementar):
+  • Define padrões de barras
+  • Sincronizado com beats
+  • Editor de charts (futuro)
+
+  INPUT SYSTEM:
+  • Suporte a teclado
+  • Suporte a gamepad (futuro)
+  • Sistema de bindings customizável
+  • Multi-plataforma
+
+═══════════════════════════════════════════════════════════════════
+ PRÓXIMOS PASSOS
+═══════════════════════════════════════════════════════════════════
+
+  CURTO PRAZO:
+  [ ] Implementar sistema de spawn de barras
+  [ ] Adicionar detecção de colisão com barra central
+  [ ] Criar sistema de pontuação
+  [ ] Implementar barra de vida e combo
+  [ ] Adicionar feedback visual de acerto/erro
+
+  MÉDIO PRAZO:
+  [ ] Sistema de chart (formato JSON)
+  [ ] Menu de seleção de músicas
+  [ ] Sistema de dificuldades
+  [ ] Salvar/carregar pontuações
+  [ ] Diferentes tipos de barras (cores)
+
+  LONGO PRAZO:
+  [ ] Editor de charts in-game
+  [ ] Sistema de conquistas
+  [ ] Multiplayer local
+  [ ] Workshop/mods da comunidade
+  [ ] Mobile touch controls
+  [ ] Modo história com cutscenes
+
+═══════════════════════════════════════════════════════════════════
+ DESIGN DE ARTE E AUDIO
+═══════════════════════════════════════════════════════════════════
+
+  ESTILO VISUAL:
+  • Neon/Synthwave para tema moderno
+  • Pixel art para tema retrô (opcional)
+  • Minimalista para foco no gameplay
+
+  SFX NECESSÁRIOS:
+  • Hit perfeito (satisfying "ping")
+  • Hit normal ("tap")
+  • Miss ("buzz" de erro)
+  • Combo break (efeito negativo)
+  • UI navigation (cliques, hovers)
+
+  FEEDBACK HÁPTICO (Mobile/Gamepad):
+  • Vibração leve nos hits
+  • Vibração forte nos erros
+  • Pulso no beat
+
+═══════════════════════════════════════════════════════════════════
+
+                    DOCUMENTO VIVO - Em Constante Evolução
+                   Última atualização: Janeiro 2026
+
+═══════════════════════════════════════════════════════════════════
 
