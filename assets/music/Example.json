@@ -1,0 +1,21 @@
+{
+	"title": "Example Song",
+	"artist": "Example Artist",
+	"bpm": 128,
+	"offset": 0,
+	"timeSignature": "4/4",
+	"looped": false,
+	"cuePoints": {
+		"intro": 0,
+		"verse1": 8000,
+		"chorus": 16000,
+		"verse2": 32000,
+		"bridge": 48000,
+		"outro": 64000
+	},
+	"tempoChanges": [
+		{ "time": 0, "bpm": 128 },
+		{ "time": 48000, "bpm": 160 },
+		{ "time": 64000, "bpm": 128 }
+	]
+}
