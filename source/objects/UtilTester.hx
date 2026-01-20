@@ -4,6 +4,7 @@ import backend.FilePath.FilePathExtension;
 import backend.FilePath.FilePathType;
 import backend.FilePath;
 import backend.FlxGroupContainer;
+import backend.InputManager;
 import backend.Paths;
 import core.utils.ArrayUtil;
 import core.utils.MathUtil;
@@ -11,6 +12,8 @@ import core.utils.StringUtil;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.group.FlxGroup.FlxTypedGroup;
+import flixel.input.gamepad.FlxGamepadInputID;
+import flixel.input.keyboard.FlxKey;
 import flixel.math.FlxPoint;
 import flixel.text.FlxText;
 import flixel.tweens.FlxTween;
@@ -26,8 +29,8 @@ using StringTools;
 class UtilTester extends FlxGroupContainer
 {
 	// Section management
-	private var currentSection:Int = 0; // 0=Math, 1=String, 2=Array, 3=FileSystem
-	private var sectionNames:Array<String> = ["MathUtil", "StringUtil", "ArrayUtil", "FileSystem"];
+	private var currentSection:Int = 0; // 0=Math, 1=String, 2=Array, 3=FileSystem, 4=Input
+	private var sectionNames:Array<String> = ["MathUtil", "StringUtil", "ArrayUtil", "FileSystem", "Input"];
 	
 	// Visual components
 	private var background:FlxSprite;
@@ -39,6 +42,7 @@ class UtilTester extends FlxGroupContainer
 	private var stringSection:FlxTypedGroup<FlxSprite>;
 	private var arraySection:FlxTypedGroup<FlxSprite>;
 	private var fileSystemSection:FlxTypedGroup<FlxSprite>;
+	private var inputSection:FlxTypedGroup<FlxSprite>;
 	
 	// MathUtil test objects
 	private var lerpSprite:FlxSprite;
@@ -79,6 +83,11 @@ class UtilTester extends FlxGroupContainer
 	// FileSystem test objects
 	private var fileStatusText:FlxText;
 	private var pathInfoText:FlxText;
+
+	// Input test objects
+	private var inputStatusText:FlxText;
+	private var keyPressVisuals:Map<String, FlxSprite> = new Map();
+	private var lastKeyPressed:String = "None";
 	
 	// Layout system
 	private var contentHeight:Float = 0; // Available height for content
@@ -120,7 +129,7 @@ class UtilTester extends FlxGroupContainer
 	 */
 	private function isAnySectionActive():Bool
 	{
-		return mathSection.active || stringSection.active || arraySection.active || fileSystemSection.active;
+		return mathSection.active || stringSection.active || arraySection.active || fileSystemSection.active || inputSection.active;
 	}
 
 	/**
@@ -183,17 +192,20 @@ class UtilTester extends FlxGroupContainer
 		stringSection = new FlxTypedGroup<FlxSprite>();
 		arraySection = new FlxTypedGroup<FlxSprite>();
 		fileSystemSection = new FlxTypedGroup<FlxSprite>();
+		inputSection = new FlxTypedGroup<FlxSprite>();
 		
 		add(mathSection);
 		add(stringSection);
 		add(arraySection);
 		add(fileSystemSection);
+		add(inputSection);
 		
 		// Setup each section
 		setupMathSection();
 		setupStringSection();
 		setupArraySection();
 		setupFileSystemSection();
+		setupInputSection();
 		
 		// Show initial section
 		switchSection(0);
@@ -467,6 +479,125 @@ class UtilTester extends FlxGroupContainer
 		fileStatusText.text = status.join("\n");
 	}
 
+	private function setupInputSection():Void
+	{
+		var yOffset:Float = contentY;
+		var col1X:Float = 20;
+		var col2X:Float = FlxG.width / 2 + 10;
+		var colWidth:Float = FlxG.width / 2 - 30;
+
+		// LEFT COLUMN
+		// Input Manager tests
+		createSectionLabel(col1X, yOffset, colWidth, "InputManager.hx\nKey & Gamepad Binding:", inputSection);
+
+		yOffset += 45;
+
+		inputStatusText = new FlxText(col1X, yOffset, colWidth, "");
+		inputStatusText.setFormat(null, 11, FlxColor.WHITE, LEFT);
+		inputSection.add(inputStatusText);
+
+		// Setup InputManager bindings (Keyboard + Gamepad)
+		var manager = InputManager.instance;
+
+		// Keyboard bindings
+		manager.bindKey("moveUp", FlxKey.W);
+		manager.bindKey("moveUp", FlxKey.UP);
+		manager.bindKey("moveDown", FlxKey.S);
+		manager.bindKey("moveDown", FlxKey.DOWN);
+		manager.bindKey("moveLeft", FlxKey.A);
+		manager.bindKey("moveLeft", FlxKey.LEFT);
+		manager.bindKey("moveRight", FlxKey.D);
+		manager.bindKey("moveRight", FlxKey.RIGHT);
+		manager.bindKey("jump", FlxKey.SPACE);
+
+		// Gamepad bindings (D-Pad + Left Stick + Face Buttons)
+		manager.bindGamepadButton("moveUp", FlxGamepadInputID.DPAD_UP);
+		manager.bindGamepadButton("moveDown", FlxGamepadInputID.DPAD_DOWN);
+		manager.bindGamepadButton("moveLeft", FlxGamepadInputID.DPAD_LEFT);
+		manager.bindGamepadButton("moveRight", FlxGamepadInputID.DPAD_RIGHT);
+		manager.bindGamepadButton("jump", FlxGamepadInputID.A);
+
+		// Left analog stick
+		manager.bindGamepadAxis("moveUp", FlxGamepadInputID.LEFT_STICK_DIGITAL_UP);
+		manager.bindGamepadAxis("moveDown", FlxGamepadInputID.LEFT_STICK_DIGITAL_DOWN);
+		manager.bindGamepadAxis("moveLeft", FlxGamepadInputID.LEFT_STICK_DIGITAL_LEFT);
+		manager.bindGamepadAxis("moveRight", FlxGamepadInputID.LEFT_STICK_DIGITAL_RIGHT);
+
+		// Check if gamepad is connected
+		var gamepadConnected = FlxG.gamepads.lastActive != null;
+		var statusText = gamepadConnected ? "Gamepad: CONNECTED ✓" : "Gamepad: Not connected";
+		var statusColor = gamepadConnected ? FlxColor.LIME : FlxColor.ORANGE;
+
+		inputStatusText.text = 'Press keys/buttons to test:\n[W/↑] [S/↓] [A/←] [D/→]\n[SPACE] - Jump';
+		inputStatusText.color = FlxColor.WHITE;
+
+		yOffset += 120;
+
+		// Visual action indicators (compact layout for column)
+		var actions = [
+			{name: "moveUp", label: "↑"},
+			{name: "moveLeft", label: "←"},
+			{name: "moveDown", label: "↓"},
+			{name: "moveRight", label: "→"},
+			{name: "jump", label: "JUMP"}
+		];
+
+		// Compact keyboard layout - relative to column
+		var actionPositions = [
+			{x: col1X + 60, y: yOffset}, // moveUp
+			{x: col1X + 20, y: yOffset + 40}, // moveLeft
+			{x: col1X + 60, y: yOffset + 40}, // moveDown
+			{x: col1X + 100, y: yOffset + 40}, // moveRight
+			{x: col1X + 160, y: yOffset + 40} // jump
+		];
+
+		for (i in 0...actions.length)
+		{
+			var action = actions[i];
+			var pos = actionPositions[i];
+
+			var actionBox = new FlxSprite(pos.x, pos.y);
+			var width = (action.name == "jump") ? 60 : 35;
+			actionBox.makeGraphic(width, 35, FlxColor.fromRGB(60, 60, 60));
+			inputSection.add(actionBox);
+
+			var actionLabel = new FlxText(pos.x, pos.y + 10, width, action.label);
+			actionLabel.setFormat(null, 10, FlxColor.GRAY, CENTER);
+			inputSection.add(actionLabel);
+
+			keyPressVisuals.set(action.name, actionBox);
+		}
+
+		// RIGHT COLUMN - Bindings info
+		yOffset = contentY;
+
+		createSectionLabel(col2X, yOffset, colWidth, "Input Bindings:", inputSection);
+
+		yOffset += 30;
+
+		var bindingsInfo = new FlxText(col2X, yOffset, colWidth,
+			"Keyboard:\n  W/UP → moveUp\n  S/DOWN → moveDown\n  A/LEFT → moveLeft\n  D/RIGHT → moveRight\n  SPACE → jump\n\nGamepad:\n  D-Pad/L-Stick → Movement\n  A Button → jump\n\nMultiple inputs can\ntrigger the same action!");
+		bindingsInfo.setFormat(null, 11, FlxColor.YELLOW, LEFT);
+		inputSection.add(bindingsInfo);
+
+		yOffset += 200;
+
+		// Gamepad status indicator
+		var gamepadStatusLabel = createSectionLabel(col2X, yOffset, colWidth, "Gamepad Status:", inputSection);
+		gamepadStatusLabel.size = 12;
+
+		yOffset += 25;
+
+		var gamepadIndicator = new FlxSprite(col2X, yOffset);
+		gamepadIndicator.makeGraphic(15, 15, gamepadConnected ? FlxColor.LIME : FlxColor.RED);
+		inputSection.add(gamepadIndicator);
+		keyPressVisuals.set("gamepadIndicator", gamepadIndicator);
+
+		var gamepadText = new FlxText(col2X + 20, yOffset - 2, colWidth - 20, statusText);
+		gamepadText.setFormat(null, 11, statusColor, LEFT);
+		inputSection.add(gamepadText);
+		keyPressVisuals.set("gamepadText", gamepadText);
+	}
 	
 	public function switchSection(section:Int):Void
 	{
@@ -481,6 +612,7 @@ class UtilTester extends FlxGroupContainer
 		setSectionVisibility(stringSection, false);
 		setSectionVisibility(arraySection, false);
 		setSectionVisibility(fileSystemSection, false);
+		setSectionVisibility(inputSection, false);
 		
 		// Activate current section
 		switch (currentSection)
@@ -493,6 +625,8 @@ class UtilTester extends FlxGroupContainer
 				setSectionVisibility(arraySection, true);
 			case 3:
 				setSectionVisibility(fileSystemSection, true);
+			case 4:
+				setSectionVisibility(inputSection, true);
 		}
 	}
 	
@@ -552,6 +686,8 @@ class UtilTester extends FlxGroupContainer
 				}
 			case 3: // FileSystem - Refresh file status
 				updateFileStatus();
+
+			case 4: // Input
 
 		}
 	}
@@ -633,6 +769,50 @@ class UtilTester extends FlxGroupContainer
 		if (fileSystemSection.active)
 		{
 			// Nothing to update in real-time
+		}
+
+		// Input updates
+		if (inputSection.active)
+		{
+			// Update action press visuals using InputManager
+			var manager = InputManager.instance;
+			var actions = ["moveUp", "moveLeft", "moveDown", "moveRight", "jump"];
+
+			for (action in actions)
+			{
+				var visual = keyPressVisuals.get(action);
+				if (visual != null)
+				{
+					// Use InputManager to check if action is pressed
+					if (manager.pressed(action))
+					{
+						visual.color = FlxColor.LIME;
+						lastKeyPressed = action;
+					}
+					else
+					{
+						visual.color = FlxColor.fromRGB(60, 60, 60);
+					}
+				}
+			}
+
+			// Update gamepad connection status
+			var gamepadConnected = FlxG.gamepads.lastActive != null;
+			var indicator = keyPressVisuals.get("gamepadIndicator");
+			var text = cast(keyPressVisuals.get("gamepadText"), FlxText);
+
+			if (indicator != null)
+			{
+				indicator.color = gamepadConnected ? FlxColor.LIME : FlxColor.RED;
+			}
+
+			if (text != null)
+			{
+				var statusText = gamepadConnected ? "Gamepad: CONNECTED ✓" : "Gamepad: Not connected";
+				var statusColor = gamepadConnected ? FlxColor.LIME : FlxColor.ORANGE;
+				text.text = statusText;
+				text.color = statusColor;
+			}
 		}
 	}
 }
