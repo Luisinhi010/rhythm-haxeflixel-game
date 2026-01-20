@@ -12,16 +12,17 @@ import haxe.ui.components.CheckBox;
 import haxe.ui.components.Label;
 import haxe.ui.components.NumberStepper;
 import haxe.ui.components.TextField;
-import haxe.ui.components.VBox;
 import haxe.ui.containers.Box;
 import haxe.ui.containers.HBox;
 import haxe.ui.containers.ScrollView;
 import haxe.ui.containers.VBox as HaxeUIVBox;
 import haxe.ui.core.Screen;
+using StringTools;
 #if sys
 import sys.FileSystem;
 import sys.io.File;
 #end
+
 
 /**
  * Metadata Editor State using Haxe-UI for cross-platform compatibility
