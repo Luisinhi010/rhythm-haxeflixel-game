@@ -10,6 +10,7 @@ class Util
 	 * Converts a relative file path into a platform-specific writable path.
 	 * @param relativePath The relative path of the file.
 	 * @return The full, writable path.
+	 * @deprecated It will be moved to infrastructure/persistence/FileUtil.hx
 	 */
 	public static function getWritablePath(relativePath:String):String
 	{
