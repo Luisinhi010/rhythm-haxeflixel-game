@@ -51,6 +51,7 @@ class ResponsiveBackground extends FlxTypedGroup<FlxSprite>
 	
 	/**
 	 * Creates a gradient background.
+	 * Uses GPU shaders.
 	 * @param color1 First color (top for vertical, left for horizontal)
 	 * @param color2 Second color (bottom for vertical, right for horizontal)
 	 * @param vertical True for vertical gradient, false for horizontal
@@ -60,13 +61,14 @@ class ResponsiveBackground extends FlxTypedGroup<FlxSprite>
 	{
 		clear();
 		alpha = clampAlpha(alpha);
-		
+
 		var bg = new FlxSprite();
 		updateGradient(bg, color1, color2, vertical);
 		bg.alpha = alpha;
-		
-		addLayer(bg, "gradient", 0, 0, null, GRADIENT, vertical);
-		
+
+		// Store colors for efficient resize operations
+		addLayer(bg, "gradient", 0, 0, null, GRADIENT, vertical, color1, color2);
+
 		return bg;
 	}
 	
@@ -116,6 +118,7 @@ class ResponsiveBackground extends FlxTypedGroup<FlxSprite>
 	/**
 	 * Adds a vertical gradient layer without clearing previous layers.
 	 * Use this for creating multiple gradient layers (e.g., animated gradients).
+	 * Uses GPU shaders.
 	 * @param topColor Top color
 	 * @param bottomColor Bottom color
 	 * @param alpha Transparency (0-1)
@@ -125,19 +128,21 @@ class ResponsiveBackground extends FlxTypedGroup<FlxSprite>
 	public function addVerticalGradientLayer(topColor:FlxColor, bottomColor:FlxColor, alpha:Float = 1.0, scrollFactorX:Float = 0, scrollFactorY:Float = 0):FlxSprite
 	{
 		alpha = clampAlpha(alpha);
-		
+
 		var bg = new FlxSprite();
 		updateGradient(bg, topColor, bottomColor, true);
 		bg.alpha = alpha;
-		
-		addLayer(bg, "gradient_layer_" + layers.length, scrollFactorX, scrollFactorY, null, GRADIENT, true);
-		
+
+		// Store colors for efficient resize operations
+		addLayer(bg, "gradient_layer_" + layers.length, scrollFactorX, scrollFactorY, null, GRADIENT, true, topColor, bottomColor);
+
 		return bg;
 	}
 	
 	/**
 	 * Adds a horizontal gradient layer without clearing previous layers.
 	 * Use this for creating multiple gradient layers (e.g., animated gradients).
+	 * Uses GPU shaders.
 	 * @param leftColor Left color
 	 * @param rightColor Right color
 	 * @param alpha Transparency (0-1)
@@ -147,13 +152,14 @@ class ResponsiveBackground extends FlxTypedGroup<FlxSprite>
 	public function addHorizontalGradientLayer(leftColor:FlxColor, rightColor:FlxColor, alpha:Float = 1.0, scrollFactorX:Float = 0, scrollFactorY:Float = 0):FlxSprite
 	{
 		alpha = clampAlpha(alpha);
-		
+
 		var bg = new FlxSprite();
 		updateGradient(bg, leftColor, rightColor, false);
 		bg.alpha = alpha;
-		
-		addLayer(bg, "gradient_layer_" + layers.length, scrollFactorX, scrollFactorY, null, GRADIENT, false);
-		
+
+		// Store colors for efficient resize operations
+		addLayer(bg, "gradient_layer_" + layers.length, scrollFactorX, scrollFactorY, null, GRADIENT, false, leftColor, rightColor);
+
 		return bg;
 	}
 	
@@ -372,29 +378,69 @@ class ResponsiveBackground extends FlxTypedGroup<FlxSprite>
 	
 	/**
 	 * Resizes a gradient layer preserving its colors and orientation.
+	 * If using shader gradients, this is nearly instantaneous (just resize sprite).
+	 * If using fallback bitmap gradients, recreates the gradient.
 	 */
 	private function resizeGradient(layer:BackgroundLayer):Void
 	{
-		if (layer.sprite == null || layer.sprite.pixels == null) return;
-		
+		if (layer.sprite == null)
+			return;
+
 		var oldAlpha = layer.sprite.alpha;
 		var vertical = layer.gradientVertical != null ? layer.gradientVertical : true;
-		
-		// Get colors from appropriate positions based on orientation
+		var width = FlxG.width;
+		var height = FlxG.height;
+
+		// If using shader gradient, just resize the sprite - shader handles the rest
+		if (SpriteUtil.hasShader(layer.sprite))
+		{
+			// Shader gradient: just resize, shader recalculates gradient automatically
+			layer.sprite.setGraphicSize(width, height);
+			layer.sprite.updateHitbox();
+			layer.sprite.alpha = oldAlpha;
+			return;
+		}
+
+		// If no stored colors and no shader, can't recreate gradient reliably
+		if (layer.gradientColor1 == null || layer.gradientColor2 == null)
+		{
+			if (layer.sprite.pixels == null)
+			{
+				#if debug
+				trace("[ResponsiveBackground] Cannot resize gradient without colors or pixels");
+				#end
+				return;
+			}
+		}
+
+		// Fallback: bitmap gradient - need to get colors and recreate
+		if (layer.sprite.pixels == null)
+			return;
+
 		var color1:FlxColor;
 		var color2:FlxColor;
-		
-		if (vertical)
+
+		// Try to get stored colors first (more reliable)
+		if (layer.gradientColor1 != null && layer.gradientColor2 != null)
 		{
-			color1 = layer.sprite.pixels.getPixel32(0, 0);
-			color2 = layer.sprite.pixels.getPixel32(0, layer.sprite.pixels.height - 1);
+			color1 = layer.gradientColor1;
+			color2 = layer.gradientColor2;
 		}
 		else
 		{
-			color1 = layer.sprite.pixels.getPixel32(0, 0);
-			color2 = layer.sprite.pixels.getPixel32(layer.sprite.pixels.width - 1, 0);
+			// Extract colors from pixels as fallback
+			if (vertical)
+			{
+				color1 = layer.sprite.pixels.getPixel32(0, 0);
+				color2 = layer.sprite.pixels.getPixel32(0, layer.sprite.pixels.height - 1);
+			}
+			else
+			{
+				color1 = layer.sprite.pixels.getPixel32(0, 0);
+				color2 = layer.sprite.pixels.getPixel32(layer.sprite.pixels.width - 1, 0);
+			}
 		}
-		
+
 		updateGradient(layer.sprite, color1, color2, vertical);
 		layer.sprite.alpha = oldAlpha;
 	}
@@ -413,8 +459,28 @@ class ResponsiveBackground extends FlxTypedGroup<FlxSprite>
 	{
 		var width = FlxG.width;
 		var height = FlxG.height;
-		
-		// CRITICAL: FlxGradient.createGradientFlxSprite creates a temporary sprite that must be destroyed
+
+		// Try GPU shader-based gradient first (much faster, no memory overhead)
+		if (sprite.pixels == null || sprite.width != width || sprite.height != height)
+		{
+			// Create base sprite if needed
+			sprite.makeGraphic(1, 1, FlxColor.WHITE);
+			sprite.setGraphicSize(width, height);
+			sprite.updateHitbox();
+		}
+
+		// Apply shader gradient
+		if (SpriteUtil.applyGradientShader(sprite, color1, color2, vertical))
+		{
+			// Shader applied successfully - GPU handles the gradient
+			return;
+		}
+
+		// Fallback: Use FlxGradient bitmap (slower, uses more memory)
+		#if debug
+		trace("[ResponsiveBackground] Shader gradient failed, using FlxGradient fallback");
+		#end
+
 		var tempSprite:FlxSprite;
 		if (vertical)
 		{
@@ -424,8 +490,7 @@ class ResponsiveBackground extends FlxTypedGroup<FlxSprite>
 		{
 			tempSprite = FlxGradient.createGradientFlxSprite(width, height, [color1, color2], 1, 0, true);
 		}
-		
-		// Load the graphic and then destroy the temporary sprite to prevent memory leak
+
 		sprite.loadGraphic(tempSprite.graphic);
 		tempSprite.destroy();
 	}
@@ -471,19 +536,22 @@ class ResponsiveBackground extends FlxTypedGroup<FlxSprite>
 		}
 	}
 	
-	private function addLayer(sprite:FlxSprite, name:String, scrollX:Float, scrollY:Float, ?scaleMode:ScaleMode, ?type:BackgroundType, ?gradientVertical:Bool):Void
+	private function addLayer(sprite:FlxSprite, name:String, scrollX:Float, scrollY:Float, ?scaleMode:ScaleMode, ?type:BackgroundType, ?gradientVertical:Bool,
+			?color1:FlxColor, ?color2:FlxColor):Void
 	{
 		sprite.scrollFactor.set(scrollX, scrollY);
-		
+
 		var layer:BackgroundLayer = {
 			sprite: sprite,
 			name: name,
 			scrollFactor: FlxPoint.get(scrollX, scrollY),
 			scaleMode: scaleMode,
 			type: type != null ? type : SOLID,
-			gradientVertical: gradientVertical
+			gradientVertical: gradientVertical,
+			gradientColor1: color1,
+			gradientColor2: color2
 		};
-		
+
 		layers.push(layer);
 		add(sprite);
 	}
@@ -506,7 +574,9 @@ typedef BackgroundLayer =
 	scrollFactor:FlxPoint,
 	?scaleMode:ScaleMode,
 	type:BackgroundType,
-	?gradientVertical:Bool
+	?gradientVertical:Bool,
+	?gradientColor1:FlxColor,
+	?gradientColor2:FlxColor
 }
 
 /**

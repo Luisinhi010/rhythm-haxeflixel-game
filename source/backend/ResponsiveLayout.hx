@@ -197,7 +197,8 @@ class ResponsiveLayout
 		var colWidth = calculateColumnWidth(GRID_COLUMNS, _contentWidth, columnGap);
 		var spanGap = columnGap * (span - 1);
 		
-		return colWidth * span + spanGap;
+		var result = colWidth * span + spanGap;
+		return result < 0 ? 0 : result;
 	}
 	
 	public function getGridX(column:Int):Float
@@ -206,7 +207,8 @@ class ResponsiveLayout
 		
 		var colWidth = calculateColumnWidth(GRID_COLUMNS, _contentWidth, columnGap);
 		
-		return padding + (colWidth + columnGap) * column;
+		var result = padding + (colWidth + columnGap) * column;
+		return result < 0 ? 0 : result;
 	}
 	
 	// Centering helpers

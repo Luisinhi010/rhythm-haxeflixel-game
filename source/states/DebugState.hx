@@ -178,5 +178,12 @@ class DebugState extends DefaultState
 			toggleUtilTester();
 
 		handleUtilTesterInput();
+		// Open responsive example state
+		if (FlxG.keys.justPressed.Y)
+			FlxG.switchState(ResponsiveExampleState.new);
+
+		// Open background example state
+		if (FlxG.keys.justPressed.B)
+			FlxG.switchState(BackgroundExampleState.new);
 	}
 }

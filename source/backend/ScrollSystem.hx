@@ -296,7 +296,19 @@ class ScrollSystem
 	public function updateScreenSize():Void
 	{
 		var oldScreenHeight = screenHeight;
-		screenHeight = validateScreenHeight(FlxG.height);
+		var newHeight = validateScreenHeight(FlxG.height);
+		var newWidth = FlxG.width;
+
+		// Validate dimensions before using
+		if (newWidth <= 0 || newHeight <= 0)
+		{
+			#if debug
+			trace("[ScrollSystem] Invalid screen dimensions: " + newWidth + "x" + newHeight);
+			#end
+			return;
+		}
+
+		screenHeight = newHeight;
 		
 		if (oldScreenHeight > 0 && maxScrollY > 0)
 		{
