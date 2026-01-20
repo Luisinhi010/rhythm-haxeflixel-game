@@ -37,9 +37,9 @@ This is a rhythm game built with Haxe, OpenFL, and HaxeFlixel. The game is a Gui
     - `objects/` - Game objects (Conductor, Song, DefaultBar, etc.)
     - `states/` - Game states (PlayState, DebugState, DefaultState)
   - `assets/` - Game assets
-    - `imagens/` - Images (Portuguese: "images")
-    - `videos/` - Videos
-    - `sons/` - Sounds (Portuguese: "sounds")
+    - `images/` - Images
+    - `music/` - Music files
+    - `sounds/` - Sound effects
 
 ## Architecture Patterns
 
@@ -144,7 +144,7 @@ This is a rhythm game built with Haxe, OpenFL, and HaxeFlixel. The game is a Gui
 - The build output goes to `export/debug/` or `export/release/` based on the build type
 
 ## Common Utilities
-- Use `Util.hx` for common utility functions
+- Use `source/Util.hx` for common utility functions
 - Use `FlxStringUtil` for string formatting
 - Use `FlxColor` for color management (provides color constants and utilities)
 
@@ -165,8 +165,4 @@ This is a rhythm game built with Haxe, OpenFL, and HaxeFlixel. The game is a Gui
 - Avoid creating new objects every frame - reuse when possible
 
 ## Portuguese Context
-Note: Some parts of the codebase and documentation use Portuguese (Brazilian Portuguese):
-- `imagens` = images
-- `sons` = sounds
-- `plano.txt` = plan/design document
-This is intentional and should be maintained for consistency with the project's origin.
+Note: Some documentation files use Portuguese (Brazilian Portuguese), such as `plano.txt` (the plan/design document). This is intentional and reflects the project's origin.
