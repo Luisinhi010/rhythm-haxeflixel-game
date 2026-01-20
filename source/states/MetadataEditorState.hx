@@ -61,7 +61,6 @@ class MetadataEditorState extends DefaultState
 	var clearTempoButton:FlxUIButton;
 	
 	// Current metadata being edited
-	var currentMetadata:MusicMetaData;
 	var currentSongName:String = "";
 	var cuePoints:Map<String, Float>;
 	var tempoChanges:Array<{time:Float, bpm:Float}>;
@@ -373,7 +372,8 @@ class MetadataEditorState extends DefaultState
 		};
 		
 		// Add cue points if any
-		if (Lambda.count(cuePoints) > 0)
+		var cuePointsIter = cuePoints.keys();
+		if (cuePointsIter.hasNext())
 		{
 			var cuePointsObj:Dynamic = {};
 			for (key in cuePoints.keys())
@@ -425,7 +425,10 @@ class MetadataEditorState extends DefaultState
 	function onAddCuePoint():Void
 	{
 		// Simple dialog-like approach using input
-		var cueName = "cue_" + Lambda.count(cuePoints);
+		var cueCount = 0;
+		for (_ in cuePoints.keys())
+			cueCount++;
+		var cueName = "cue_" + cueCount;
 		var cueTime = 0.0;
 		
 		// In a real implementation, you'd want a proper dialog
@@ -464,7 +467,8 @@ class MetadataEditorState extends DefaultState
 	
 	function updateCuePointsList():Void
 	{
-		if (Lambda.count(cuePoints) == 0)
+		var hasKeys = cuePoints.keys().hasNext();
+		if (!hasKeys)
 		{
 			cuePointsListText.text = "(none)";
 			cuePointsListText.color = FlxColor.GRAY;
