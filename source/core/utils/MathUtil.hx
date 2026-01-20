@@ -2,7 +2,7 @@ package core.utils;
 
 import core.utils.ArrayUtil;
 import flixel.FlxG;
-import flixel.math.FlxMath;
+import flixel.math.*;
 
 /**
  * Math utilities using native Haxe and HaxeFlixel functions where possible.
@@ -164,6 +164,7 @@ class MathUtil
 		if (b == 0) return 0;
 		return a / b;
 	}
+
 	/**
 	 * Calculates distance between two points.
 	 * @param x1 First point X
@@ -174,39 +175,9 @@ class MathUtil
 	 */
 	public static inline function distance(x1:Float, y1:Float, x2:Float, y2:Float):Float
 	{
-		return FlxMath.distanceBetween(x1, y1, x2, y2);
-	}
-
-	/**
-	 * Calculates squared distance (faster, no sqrt).
-	 * Useful for distance comparisons where exact distance isn't needed.
-	 */
-	public static inline function distanceSquared(x1:Float, y1:Float, x2:Float, y2:Float):Float
-	{
-		var dx = x2 - x1;
-		var dy = y2 - y1;
-		return dx * dx + dy * dy;
-	}
-
-	/**
-	 * Calculates angle in radians between two points.
-	 * @param x1 Start point X
-	 * @param y1 Start point Y
-	 * @param x2 End point X
-	 * @param y2 End point Y
-	 * @return Angle in radians
-	 */
-	public static inline function angleBetween(x1:Float, y1:Float, x2:Float, y2:Float):Float
-	{
-		return FlxMath.angleBetween(x1, y1, x2, y2);
-	}
-
-	/**
-	 * Calculates angle in degrees between two points.
-	 */
-	public static inline function angleBetweenDegrees(x1:Float, y1:Float, x2:Float, y2:Float):Float
-	{
-		return radToDeg(angleBetween(x1, y1, x2, y2));
+		var dx:Float = x1 - x2;
+		var dy:Float = y1 - y2;
+		return Std.int(FlxMath.vectorLength(dx, dy));
 	}
 
 	/**
@@ -216,7 +187,7 @@ class MathUtil
 	 */
 	public static inline function wrapAngle(angle:Float):Float
 	{
-		return FlxMath.wrapAngle(angle);
+		return FlxAngle.wrapAngle(angle);
 	}
 
 	/**
