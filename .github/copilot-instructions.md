@@ -13,9 +13,11 @@ This is a rhythm game built with Haxe, OpenFL, and HaxeFlixel. The game is a Gui
 
 ### Haxe Language Guidelines
 - Use tabs for indentation (following HaxeFlixel conventions)
-- Place opening braces based on context (following `hxformat.json`):
-  - "both" setting means line breaks before AND after opening/closing braces for general cases
-  - Object literals use "after" - opening brace gets a line break after it only
+- Brace placement (following `hxformat.json`):
+  - General rule ("both"): Opening braces on new line, closing braces on new line
+  - Object literals ("after"): Opening brace inline, closing brace on new line
+  - Example class/function: opening `{` on new line after declaration
+  - Example object: `var obj = {` with opening brace on same line
 - Control flow: place `else` on the next line after the closing brace of the if block
 - Follow the style defined in `hxformat.json`
 - Use type annotations for all function parameters and return types
@@ -146,7 +148,7 @@ This is a rhythm game built with Haxe, OpenFL, and HaxeFlixel. The game is a Gui
 - The build output goes to `export/debug/` or `export/release/` based on the build type
 
 ## Common Utilities
-- Use `Util.hx` (in source root) for common utility functions
+- Use `Util.hx` (located at `source/Util.hx`) for common utility functions
 - Use `FlxStringUtil` for string formatting
 - Use `FlxColor` for color management (provides color constants and utilities)
 
