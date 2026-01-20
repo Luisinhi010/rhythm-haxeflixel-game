@@ -317,6 +317,7 @@ class MetadataEditorState extends DefaultState
 		var nameField = new TextField();
 		nameField.placeholder = "Cue name";
 		nameField.width = 200;
+		nameField.id = "cueName";
 		if (name != null) nameField.text = name;
 		row.addComponent(nameField);
 		
@@ -326,6 +327,7 @@ class MetadataEditorState extends DefaultState
 		timeStepper.step = 100;
 		timeStepper.pos = time != null ? time : 0;
 		timeStepper.width = 150;
+		timeStepper.id = "cueTime";
 		row.addComponent(timeStepper);
 		
 		var removeBtn = new Button();
@@ -353,6 +355,7 @@ class MetadataEditorState extends DefaultState
 		timeStepper.step = 100;
 		timeStepper.pos = time != null ? time : 0;
 		timeStepper.width = 150;
+		timeStepper.id = "tempoTime";
 		row.addComponent(timeStepper);
 		
 		var bpmLabel = new Label();
@@ -366,6 +369,7 @@ class MetadataEditorState extends DefaultState
 		bpmStepper.pos = bpm != null ? bpm : 120;
 		bpmStepper.precision = 1;
 		bpmStepper.width = 120;
+		bpmStepper.id = "tempoBpm";
 		row.addComponent(bpmStepper);
 		
 		var removeBtn = new Button();
@@ -383,9 +387,9 @@ class MetadataEditorState extends DefaultState
 		titleField.text = currentMetadata.title;
 		artistField.text = currentMetadata.artist;
 		bpmStepper.pos = currentMetadata.bpm;
-		offsetStepper.pos = currentMetadata.offset != null ? currentMetadata.offset : 0;
-		timeSignatureField.text = currentMetadata.timeSignature != null ? currentMetadata.timeSignature : "4/4";
-		loopedCheckbox.selected = currentMetadata.looped != null ? currentMetadata.looped : false;
+		offsetStepper.pos = currentMetadata.offset;
+		timeSignatureField.text = currentMetadata.timeSignature;
+		loopedCheckbox.selected = currentMetadata.looped;
 		
 		// Clear and reload cue points
 		cuePointsContainer.removeAllComponents();
@@ -424,9 +428,9 @@ class MetadataEditorState extends DefaultState
 			if (Std.isOfType(component, HBox))
 			{
 				var row = cast(component, HBox);
-				var nameField = cast(row.childComponents[0], TextField);
-				var timeStepper = cast(row.childComponents[1], NumberStepper);
-				if (nameField.text != null && nameField.text.length > 0)
+				var nameField:TextField = row.findComponent("cueName", TextField);
+				var timeStepper:NumberStepper = row.findComponent("cueTime", NumberStepper);
+				if (nameField != null && timeStepper != null && nameField.text != null && nameField.text.length > 0)
 				{
 					currentMetadata.cuePoints.set(nameField.text, timeStepper.pos);
 				}
@@ -440,12 +444,15 @@ class MetadataEditorState extends DefaultState
 			if (Std.isOfType(component, HBox))
 			{
 				var row = cast(component, HBox);
-				var timeStepper = cast(row.childComponents[1], NumberStepper);
-				var bpmStepper = cast(row.childComponents[3], NumberStepper);
-				currentMetadata.tempoChanges.push({
-					time: timeStepper.pos,
-					bpm: bpmStepper.pos
-				});
+				var timeStepper:NumberStepper = row.findComponent("tempoTime", NumberStepper);
+				var bpmStepper:NumberStepper = row.findComponent("tempoBpm", NumberStepper);
+				if (timeStepper != null && bpmStepper != null)
+				{
+					currentMetadata.tempoChanges.push({
+						time: timeStepper.pos,
+						bpm: bpmStepper.pos
+					});
+				}
 			}
 		}
 	}
@@ -484,6 +491,8 @@ class MetadataEditorState extends DefaultState
 				var fileName = jsonFiles[0];
 				var filePath = musicPath + "/" + fileName;
 				
+				setStatus("Loading: " + fileName + "...", true);
+				
 				try
 				{
 					var content = File.getContent(filePath);
@@ -512,7 +521,7 @@ class MetadataEditorState extends DefaultState
 					
 					currentFilePath = filePath;
 					loadFormData();
-					setStatus("Loaded: " + fileName, true);
+					setStatus("Successfully loaded: " + fileName, true);
 				}
 				catch (e:Dynamic)
 				{
@@ -566,7 +575,7 @@ class MetadataEditorState extends DefaultState
 		#if sys
 		// In a real implementation, you'd show a file picker dialog
 		// For now, save with a default name based on the title
-		var fileName = StringTools.replace(currentMetadata.title, " ", "_") + ".json";
+		var fileName = sanitizeFileName(currentMetadata.title) + ".json";
 		var filePath = "assets/music/" + fileName;
 		
 		try
@@ -583,6 +592,24 @@ class MetadataEditorState extends DefaultState
 		#else
 		setStatus("Save not supported on this platform", false);
 		#end
+	}
+	
+	function sanitizeFileName(name:String):String
+	{
+		// Replace spaces with underscores
+		var sanitized = StringTools.replace(name, " ", "_");
+		// Remove or replace invalid characters for file names
+		var invalidChars = ["<", ">", ":", "\"", "/", "\\", "|", "?", "*"];
+		for (char in invalidChars)
+		{
+			sanitized = StringTools.replace(sanitized, char, "_");
+		}
+		// Ensure the name is not empty
+		if (sanitized.length == 0)
+		{
+			sanitized = "metadata";
+		}
+		return sanitized;
 	}
 	
 	function metadataToJson():String
