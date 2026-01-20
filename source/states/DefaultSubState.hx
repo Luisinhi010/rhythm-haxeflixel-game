@@ -1,9 +1,9 @@
 package states;
 
 import flixel.FlxG;
-import flixel.FlxState;
+import flixel.FlxSubState;
 
-class DefaultState extends FlxState
+class DefaultSubState extends FlxSubState
 {
 	override public function create():Void
 	{
@@ -16,7 +16,8 @@ class DefaultState extends FlxState
 
 		if (FlxG.keys.justPressed.F5)
 		{
-			trace("Reloading state...");
+			trace("Reloading parent state...");
+			close();
 			FlxG.resetState();
 		}
 	}
