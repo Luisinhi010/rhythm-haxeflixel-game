@@ -9,6 +9,7 @@ import flixel.addons.ui.FlxUICheckBox;
 import flixel.text.FlxText;
 import flixel.util.FlxColor;
 import haxe.Json;
+using StringTools;
 #if sys
 import sys.io.File;
 #end
