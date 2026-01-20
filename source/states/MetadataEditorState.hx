@@ -63,6 +63,7 @@ class MetadataEditorState extends DefaultState
 	// Current metadata being edited
 	var currentSongName:String = "";
 	var cuePoints:Map<String, Float>;
+	var cuePointCount:Int = 0; // Track count for efficiency
 	var tempoChanges:Array<{time:Float, bpm:Float}>;
 	
 	// UI Layout constants
@@ -267,6 +268,7 @@ class MetadataEditorState extends DefaultState
 		timeSignatureInput.text = "4/4";
 		loopedCheckbox.checked = false;
 		cuePoints.clear();
+		cuePointCount = 0;
 		tempoChanges = [];
 		updateCuePointsList();
 		updateTempoChangesList();
@@ -309,12 +311,14 @@ class MetadataEditorState extends DefaultState
 			
 			// Load cue points
 			cuePoints.clear();
+			cuePointCount = 0;
 			var cuePointsObj:Dynamic = parsedData.cuePoints;
 			if (cuePointsObj != null)
 			{
 				for (fieldName in Reflect.fields(cuePointsObj))
 				{
 					cuePoints.set(fieldName, Reflect.field(cuePointsObj, fieldName));
+					cuePointCount++;
 				}
 			}
 			updateCuePointsList();
@@ -372,8 +376,7 @@ class MetadataEditorState extends DefaultState
 		};
 		
 		// Add cue points if any
-		var cuePointsIter = cuePoints.keys();
-		if (cuePointsIter.hasNext())
+		if (cuePointCount > 0)
 		{
 			var cuePointsObj:Dynamic = {};
 			for (key in cuePoints.keys())
@@ -425,15 +428,13 @@ class MetadataEditorState extends DefaultState
 	function onAddCuePoint():Void
 	{
 		// Simple dialog-like approach using input
-		var cueCount = 0;
-		for (_ in cuePoints.keys())
-			cueCount++;
-		var cueName = "cue_" + cueCount;
+		var cueName = "cue_" + cuePointCount;
 		var cueTime = 0.0;
 		
 		// In a real implementation, you'd want a proper dialog
 		// For now, we'll add a sample cue point
 		cuePoints.set(cueName, cueTime);
+		cuePointCount++;
 		updateCuePointsList();
 		setStatus("Added cue point '" + cueName + "'. Edit JSON file for custom values.", FlxColor.YELLOW);
 	}
@@ -441,6 +442,7 @@ class MetadataEditorState extends DefaultState
 	function onClearCuePoints():Void
 	{
 		cuePoints.clear();
+		cuePointCount = 0;
 		updateCuePointsList();
 		setStatus("Cleared all cue points.", FlxColor.CYAN);
 	}
@@ -467,8 +469,7 @@ class MetadataEditorState extends DefaultState
 	
 	function updateCuePointsList():Void
 	{
-		var hasKeys = cuePoints.keys().hasNext();
-		if (!hasKeys)
+		if (cuePointCount == 0)
 		{
 			cuePointsListText.text = "(none)";
 			cuePointsListText.color = FlxColor.GRAY;
