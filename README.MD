@@ -47,12 +47,14 @@ Antes de começar, você precisa ter instalado:
 ### 📦 Instalação
 
 1. **Clone o repositório**
+
    ```bash
    git clone https://github.com/Luisinhi010/rhythm-haxeflixel-game.git
    cd rhythm-haxeflixel-game
    ```
 
 2. **Instale as dependências do Haxe**
+
    ```bash
    haxelib install lime
    haxelib install openfl
@@ -60,6 +62,7 @@ Antes de começar, você precisa ter instalado:
    ```
 
 3. **Configure o HaxeFlixel** (primeira vez apenas)
+
    ```bash
    haxelib run lime setup
    haxelib run flixel-tools setup
@@ -68,21 +71,25 @@ Antes de começar, você precisa ter instalado:
 ### ▶️ Como Executar
 
 #### Windows (Debug)
+
 ```bash
 lime test windows -debug
 ```
 
 #### Web/HTML5 (Debug)
+
 ```bash
 lime test html5 -debug
 ```
 
 #### Android (Requer Android SDK configurado)
+
 ```bash
 lime test android
 ```
 
 #### Modo Release
+
 ```bash
 lime test windows -release
 ```
@@ -100,7 +107,7 @@ No **DebugState** (estado inicial em debug):
 
 ## 📁 Estrutura do Projeto
 
-```
+```text
 rhythm-haxeflixel-game/
 ├── source/
 │   ├── Main.hx                    # Ponto de entrada
@@ -163,6 +170,7 @@ Coloque arquivos `.json` na pasta `assets/music/` com o mesmo nome do arquivo de
 ```
 
 **Campos:**
+
 - `title`: Nome da música
 - `artist`: Nome do artista
 - `bpm`: Batidas por minuto (inicial)
@@ -184,19 +192,23 @@ Coloque arquivos `.json` na pasta `assets/music/` com o mesmo nome do arquivo de
 ### Sistemas Principais
 
 #### 1. Sistema Conductor
+
 Gerencia reprodução de música e tracking de ritmo:
+
 - Cálculo preciso de beats, steps, bars e sections
 - Suporte a mudanças de BPM
 - Callbacks para eventos de ritmo
 - Sistema de cue points
 
 #### 2. Sistema de Assets (Paths)
+
 - Cache automático de recursos
 - Carregamento síncrono e assíncrono
 - Suporte multiplataforma
 - Gerenciamento de memória
 
 #### 3. Utilitários Core
+
 - **MathUtil**: Funções matemáticas (lerp, clamp, mapRange, etc.)
 - **StringUtil**: Formatação de texto e tempo
 - **ArrayUtil**: Manipulação de arrays com segurança
@@ -233,6 +245,7 @@ lime build ios
 ### Testes
 
 Use o **DebugState** para:
+
 - Testar o sistema Conductor com músicas diferentes
 - Visualizar beats e cue points no ConductorDebugger
 - Testar utilitários com o UtilTester (pressione T)
@@ -240,6 +253,7 @@ Use o **DebugState** para:
 ## 📝 Documentação
 
 Documentação detalhada disponível em:
+
 - `.github/copilot-instructions.md` - Guia completo para desenvolvedores
 - `plano.txt` - Design document em português
 
@@ -259,7 +273,8 @@ Este projeto é open source e está disponível sob a [MIT License](LICENSE).
 
 ## 👤 Autor
 
-**Luisinhi010**
+### Luisinhi010
+
 - GitHub: [@Luisinhi010](https://github.com/Luisinhi010)
 
 ## 🙏 Agradecimentos
