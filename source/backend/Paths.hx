@@ -95,6 +95,9 @@ class Paths
 	 */
 	public static function getImage(imageName:String, ignoreMod:Bool = false):BitmapData
 	{
+		if (imageName == null || imageName.length == 0)
+			return null;
+			
 		var path = FilePath.getImagePath(imageName, ignoreMod);
 		if (path == null)
 			return null;
