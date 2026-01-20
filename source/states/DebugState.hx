@@ -38,6 +38,14 @@ class DebugState extends DefaultState
 		bg = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.WHITE);
 		bg.color = FlxColor.GRAY;
 		add(bg);
+		
+		// Add instructions text
+		var instructionsText = new FlxText(10, 10, FlxG.width - 20, 
+			"Debug Controls:\n" +
+			"SPACE: Play/Pause | R: Restart | Q: Jump to cue | E: Add cue | S: Remove cue\n" +
+			"A/D: Seek -/+ 10s | P: Toggle debug | T: Utility tester | M: Metadata Editor");
+		instructionsText.setFormat(null, 12, FlxColor.WHITE, LEFT, OUTLINE, FlxColor.BLACK);
+		add(instructionsText);
 
 		song = new Song("Test", true);
 		conductor = new Conductor(song);
@@ -124,6 +132,12 @@ class DebugState extends DefaultState
 				utilTester.switchSection(2);
 			if (FlxG.keys.justPressed.SPACE)
 				utilTester.executeTest();
+		}
+		
+		// Open metadata editor
+		if (FlxG.keys.justPressed.M)
+		{
+			FlxG.switchState(new MetadataEditorState());
 		}
 	}
 }
