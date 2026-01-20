@@ -9,7 +9,6 @@ import states.ResponsiveState.DeviceType;
 
 /**
  * Base class for substates with responsive UI layout system.
- * Uses inline delegation to avoid code duplication with ResponsiveState.
  */
 class ResponsiveSubState extends DefaultSubState
 {

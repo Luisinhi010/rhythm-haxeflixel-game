@@ -48,7 +48,7 @@ class ConductorDebugger extends FlxGroupContainer
 		
 		// Create text layer for labels
 		textLayer = new FlxTypedGroup<FlxText>();
-		add(textLayer);
+		addAbsolute(textLayer);
 		
 		visible = debugMode;
 	}
@@ -116,7 +116,7 @@ class ConductorDebugger extends FlxGroupContainer
 				var label = textLayer.recycle(FlxText);
 				label.setFormat(null, 8, color);
 				label.text = labelText;
-				label.setPosition(x + 2, y - size - 10);
+				label.setPosition(canvas.x + x + 2, canvas.y + y - size - 10);
 				textLayer.add(label);
 			}
 		}
