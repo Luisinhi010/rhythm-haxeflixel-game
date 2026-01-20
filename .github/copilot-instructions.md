@@ -69,7 +69,7 @@ This is a rhythm game built with Haxe, OpenFL, and HaxeFlixel. The game is a Gui
 
 ### Music and Rhythm System
 - The `Conductor` class handles music playback and rhythm tracking
-- Music metadata is stored in JSON files with the following structure:
+- Music metadata is stored in JSON files with the following structure (parsed into `MusicMetaData` typedef):
 ```json
 {
     "title": "Song Name",
@@ -87,6 +87,7 @@ This is a rhythm game built with Haxe, OpenFL, and HaxeFlixel. The game is a Gui
     "looped": false
 }
 ```
+- Note: `cuePoints` is represented as an object in JSON but becomes `Map<String, Float>` when parsed
 - `offset`: Initial delay in milliseconds
 - `cuePoints`: Reference points in the music (in milliseconds)
 - `tempoChanges`: BPM changes throughout the song (in milliseconds)
@@ -148,7 +149,8 @@ This is a rhythm game built with Haxe, OpenFL, and HaxeFlixel. The game is a Gui
 - The build output goes to `export/debug/` or `export/release/` based on the build type
 
 ## Common Utilities
-- Use `Util.hx` (located at `source/Util.hx`) for common utility functions
+- Use `Util.hx` (located at `source/Util.hx`) for platform-specific utilities
+  - `getWritablePath()`: Converts relative paths to platform-specific writable paths
 - Use `FlxStringUtil` for string formatting
 - Use `FlxColor` for color management (provides color constants and utilities)
 
