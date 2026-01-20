@@ -613,4 +613,48 @@ class Paths
 		promise.complete(path);
 		return promise.future;
 	}
+	/**
+	 * Loads the GLSL source code from a shader file.
+	 * Uses caching to avoid repeated disk reads.
+	 * @param shaderName The shader file name (without extension).
+	 * @param ignoreMod Whether to ignore the mods folder.
+	 * @return The GLSL source code as a string, or null if not found.
+	 */
+	public static function getShaderSource(shaderName:String, ignoreMod:Bool = false):String
+	{
+		if (StringUtil.isEmpty(shaderName))
+			return null;
+
+		var path = FilePath.getShaderPath(shaderName, ignoreMod);
+
+		// Check cache first
+		if (textCache.exists(path))
+			return textCache.get(path);
+
+		// Load and cache
+		var source = loadTextContent(path);
+		if (source != null)
+			textCache.set(path, source);
+
+		return source;
+	}
+
+	/**
+	 * Loads shader source code asynchronously.
+	 * @param shaderName The shader file name (without extension).
+	 * @param ignoreMod Whether to ignore the mods folder.
+	 * @return A Future that will be completed with the GLSL source code.
+	 */
+	public static function loadShaderSourceAsync(shaderName:String, ignoreMod:Bool = false):Future<String>
+	{
+		if (StringUtil.isEmpty(shaderName))
+		{
+			var promise = new Promise<String>();
+			promise.complete(null);
+			return promise.future;
+		}
+
+		var path = FilePath.getShaderPath(shaderName, ignoreMod);
+		return createTextAsyncLoader(path);
+	}
 }
