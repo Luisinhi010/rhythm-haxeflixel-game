@@ -17,7 +17,6 @@ class TextField extends FlxSpriteGroup
 	
 	private var bg:FlxSprite;
 	private var textDisplay:FlxText;
-	private var focused:Bool = false;
 	private var cursorTimer:Float = 0;
 	private var showCursor:Bool = false;
 	private var maxLength:Int = 50;
