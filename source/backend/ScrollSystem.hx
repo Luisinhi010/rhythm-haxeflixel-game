@@ -77,13 +77,14 @@ class ScrollSystem
 	 */
 	private function createColoredSprite(width:Int, height:Int, color:FlxColor, alpha:Float = 1.0):FlxSprite
 	{
-		var sprite = new FlxSprite();
-		sprite.makeGraphic(1, 1, FlxColor.WHITE); // Only 1 pixel - shaders handle the rest
-		sprite.setGraphicSize(width, height);
-		sprite.updateHitbox();
-		sprite.color = color;
-		sprite.alpha = alpha;
-		sprite.scrollFactor.set(0, 0);
+		var sprite:FlxSprite = SpriteUtil.createColoredSprite(width, height, color, alpha);
+		
+		// Ensure scroll factor matches ScrollSystem expectations, even if SpriteUtil changes.
+		if (sprite != null)
+		{
+			sprite.scrollFactor.set(0, 0);
+		}
+		
 		return sprite;
 	}
 	
