@@ -46,14 +46,18 @@ class Button extends FlxSpriteGroup
 		super.update(elapsed);
 		
 		#if !mobile
-		var mouseOverlaps = bg.overlapsPoint(FlxG.mouse.getPosition());
+		// Get absolute position for the button
+		var mousePos = FlxG.mouse.getPosition();
+		var absoluteX = x + bg.x;
+		var absoluteY = y + bg.y;
+		var mouseOverlaps = mousePos.x >= absoluteX && mousePos.x <= absoluteX + bg.width 
+			&& mousePos.y >= absoluteY && mousePos.y <= absoluteY + bg.height;
 		
 		if (mouseOverlaps)
 		{
 			if (!isHovered)
 			{
 				isHovered = true;
-				bg.color = hoverColor;
 			}
 			
 			if (FlxG.mouse.justPressed)
@@ -76,8 +80,8 @@ class Button extends FlxSpriteGroup
 			if (isHovered)
 			{
 				isHovered = false;
-				bg.color = normalColor;
 			}
+			bg.color = normalColor;
 		}
 		#end
 	}

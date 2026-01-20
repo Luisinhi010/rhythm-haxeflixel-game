@@ -335,6 +335,10 @@ class MetadataEditorState extends DefaultState
 				updateLists();
 				setStatus('Loaded song: ${metaData.title}');
 			}
+			else
+			{
+				setStatus('Error: Could not load metadata for "$songName"');
+			}
 		}
 		catch (e:Dynamic)
 		{
@@ -388,6 +392,14 @@ class MetadataEditorState extends DefaultState
 			savePath = savePath.getWritablePath();
 			
 			File.saveContent(savePath, jsonString);
+			
+			// Clear the cache for this file so next load gets updated content
+			var cachePath = backend.FilePath.getMusicDataPath(songName, false);
+			if (cachePath != null)
+			{
+				backend.Paths.uncache(cachePath);
+			}
+			
 			setStatus('Saved metadata to: $savePath');
 		}
 		catch (e:Dynamic)
