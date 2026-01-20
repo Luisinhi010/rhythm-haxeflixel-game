@@ -149,7 +149,7 @@ class ConductorDebugger extends FlxGroupContainer
 
 		// Setup current position marker
 		positionMarker.makeGraphic(2, 50, FlxColor.LIME);
-		if (_conductor.music.length > 0)
+		if (_conductor.music != null && _conductor.music.length > 0)
 		{
 			var markerX = (_conductor.music.time / _conductor.music.length) * canvas.width;
 			positionMarker.x = canvas.x + markerX;
