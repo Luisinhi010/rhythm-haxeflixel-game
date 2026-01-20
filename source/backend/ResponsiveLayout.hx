@@ -42,7 +42,7 @@ class ResponsiveLayout
 	
 	/**
 	 * Helper to clamp a value within a range.
-	 * Delegates to MathUtil for consistent clamping behavior.
+	 * Local inline implementation for optional min/max parameters.
 	 * @param value The value to clamp
 	 * @param min Minimum value (optional)
 	 * @param max Maximum value (optional)

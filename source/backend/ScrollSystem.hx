@@ -72,19 +72,13 @@ class ScrollSystem
 	}
 	
 	/**
-	 * Helper to create a colored sprite with fixed properties.
-	 * Uses 1x1 texture with scaling for efficiency (GPU shader handles color).
+	 * Helper to create a colored sprite with scroll factor set to 0.
+	 * Delegates to SpriteUtil for consistent sprite creation behavior.
 	 */
-	private function createColoredSprite(width:Int, height:Int, color:FlxColor, alpha:Float = 1.0):FlxSprite
+	private inline function createColoredSprite(width:Int, height:Int, color:FlxColor, alpha:Float = 1.0):FlxSprite
 	{
-		var sprite:FlxSprite = SpriteUtil.createColoredSprite(width, height, color, alpha);
-		
-		// Ensure scroll factor matches ScrollSystem expectations, even if SpriteUtil changes.
-		if (sprite != null)
-		{
-			sprite.scrollFactor.set(0, 0);
-		}
-		
+		var sprite = SpriteUtil.createColoredSprite(width, height, color, alpha);
+		sprite.scrollFactor.set(0, 0);
 		return sprite;
 	}
 	
