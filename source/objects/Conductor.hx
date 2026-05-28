@@ -45,6 +45,7 @@ class Conductor extends FlxBasic
 	private var offset:Float;
 	private var timeSignature:String;
 	public var beatDuration:Float;
+	public var beatDurationMs:Float;
 	public var beatsPerBar:Int; // Number of beats per bar
 	public var beatValue:Int; // The note value that represents one beat
 
@@ -112,6 +113,7 @@ class Conductor extends FlxBasic
 		}
 		bpm = value;
 		beatDuration = 60 / bpm;
+		beatDurationMs = beatDuration * 1000;
 	}
 
 	/**
@@ -191,10 +193,13 @@ class Conductor extends FlxBasic
 		if (music == null || !music.playing)
 			return;
 
+		if (time - lastResyncTime < resyncInterval * 1000)
+			return;
+
 		var currentTime = time;
 		if (currentTime - lastResyncTime >= resyncInterval * 1000)
 		{
-			var expectedBeat = (currentTime - offset) / (beatDuration * 1000);
+			var expectedBeat = (currentTime - offset) / beatDurationMs;
 			var drift = expectedBeat - currentBeat;
 
 			if (Math.abs(drift) > syncThreshold)
@@ -217,7 +222,7 @@ class Conductor extends FlxBasic
 			return;
 		}
 		
-		currentBeat = (time - offset) / (beatDuration * 1000);
+		currentBeat = (time - offset) / beatDurationMs;
 		updateSubdivisions();
 	}
 
@@ -325,24 +330,58 @@ class Conductor extends FlxBasic
 		super.update(elapsed);
 	}
 
-	private function checkTempoChanges():Void
+	/**
+	 * Find the appropriate tempo change index for a given time using binary search.
+	 * @param time The time to search for in milliseconds.
+	 * @return The index of the next tempo change (the first change with time > target).
+	 */
+	private function findNextTempoChangeIndex(time:Float):Int
 	{
-		if (tempoChanges != null && _nextTempoChangeIndex < tempoChanges.length)
-		{
-			var tempoHasChanged:Bool = false;
-			while (_nextTempoChangeIndex < tempoChanges.length)
-			{
-				var nextChange = tempoChanges[_nextTempoChangeIndex];
-				if (music.time < nextChange.time)
-					break;
+		if (tempoChanges == null || tempoChanges.length == 0)
+			return 0;
 
-				setBpm(nextChange.bpm);
-				_nextTempoChangeIndex++;
-				tempoHasChanged = true;
+		var low:Int = 0;
+		var high:Int = tempoChanges.length - 1;
+		var result:Int = tempoChanges.length;
+
+		while (low <= high)
+		{
+			var mid:Int = Math.floor((low + high) / 2);
+			if (tempoChanges[mid].time > time)
+			{
+				result = mid;
+				high = mid - 1;
+			}
+			else
+			{
+				low = mid + 1;
 			}
 		}
+		return result;
 	}
 
+	private function checkTempoChanges():Void
+	{
+		if (tempoChanges == null || tempoChanges.length == 0)
+			return;
+
+		// If time jumped backwards, resync using binary search
+		if (_nextTempoChangeIndex > 0 && music.time < tempoChanges[_nextTempoChangeIndex - 1].time)
+		{
+			_nextTempoChangeIndex = findNextTempoChangeIndex(music.time);
+			if (_nextTempoChangeIndex > 0)
+				setBpm(tempoChanges[_nextTempoChangeIndex - 1].bpm);
+			else if (song != null && song.metaData != null)
+				setBpm(song.metaData.bpm);
+		}
+
+		// Incremental update for normal playback (O(1) most frames)
+		while (_nextTempoChangeIndex < tempoChanges.length && music.time >= tempoChanges[_nextTempoChangeIndex].time)
+		{
+			setBpm(tempoChanges[_nextTempoChangeIndex].bpm);
+			_nextTempoChangeIndex++;
+		}
+	}
 	private function checkEvent(value:Float, lastValue:Int, eventHandler:BeatEvent->Void, ?debugTrace:String):Int
 	{
 		var index = Math.floor(value);
@@ -371,7 +410,12 @@ class Conductor extends FlxBasic
 		_lastStep = -1;
 		_lastSection = -1;
 		_lastBar = -1;
-		_nextTempoChangeIndex = 0;
+		// Use binary search to find the correct starting index for the current time
+		_nextTempoChangeIndex = findNextTempoChangeIndex(music != null ? music.time : 0);
+		if (_nextTempoChangeIndex > 0)
+			setBpm(tempoChanges[_nextTempoChangeIndex - 1].bpm);
+		else if (song != null && song.metaData != null)
+			setBpm(song.metaData.bpm);
 	}
 
 	public function reset():Void

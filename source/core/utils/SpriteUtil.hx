@@ -268,6 +268,24 @@ class SpriteUtil
 		sprite.visible = true;
 		sprite.color = FlxColor.WHITE;
 	}
+	/**
+	 * Fills the sprite's pixels with a color without recreating the graphic.
+	 * This is the high-performance way to clear a canvas for redrawing every frame.
+	 * @param sprite The sprite to fill
+	 * @param color The color to use (default: transparent)
+	 */
+	public static function fill(sprite:FlxSprite, color:FlxColor = FlxColor.TRANSPARENT):Void
+	{
+		if (!isValid(sprite) || sprite.pixels == null)
+			return;
+
+		// Directly fill the bitmap data rect - much faster than makeGraphic
+		sprite.pixels.fillRect(sprite.pixels.rect, color);
+
+		// Notify Flixel that the pixels have changed to update the GPU texture
+		sprite.dirty = true;
+	}
+
 	// ==================== SHADER METHODS ====================
 
 	/**
